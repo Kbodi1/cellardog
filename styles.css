@@ -26,7 +26,7 @@ body::before {
     transform: translate(-50%, -50%);
     width: 900px;
     height: 900px;
-    background-image: url('cellardog.png');
+    background-image: url('./cellardog.jpg');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -34,6 +34,8 @@ body::before {
     z-index: -2;
     pointer-events: none;
     filter: brightness(0.7) contrast(1.4);
+    /* Fallback for IE */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
 }
 
 .background-overlay {

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Billiards Tournament</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -15,6 +16,8 @@
     <script src="firebase-config.js"></script>
 </head>
 <body>
+    <!-- Fallback background image for IE -->
+    <img src="./cellardog.jpg" alt="Background" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 900px; height: 900px; opacity: 0.5; z-index: -2; pointer-events: none; display: none;" id="fallbackBg">
     <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
     <div class="background-overlay"></div>
     <h1 class="tournament-title">Billiards Tournament</h1>
