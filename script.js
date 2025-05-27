@@ -1,32 +1,4 @@
-// Handle background image loading
-document.addEventListener('DOMContentLoaded', function() {
-    const bgImage = document.querySelector('.background-image img');
-    if (bgImage) {
-        bgImage.onerror = function() {
-            console.error('Failed to load background image');
-            // Try with absolute path
-            this.src = window.location.origin + '/cellardog.png';
-        };
-        bgImage.onload = function() {
-            console.log('Background image loaded successfully');
-        };
-    }
-});
-
-// Remove the IE background handler
-// function handleIEBackground() {
-//     const isIE = /*@cc_on!@*/false || !!document.documentMode;
-//     if (isIE) {
-//         const fallbackBg = document.getElementById('fallbackBg');
-//         if (fallbackBg) {
-//             fallbackBg.style.display = 'block';
-//             // Add IE-specific filter for opacity
-//             fallbackBg.style.filter = 'alpha(opacity=50)';
-//             // Add brightness and contrast adjustments
-//             fallbackBg.style.filter = 'brightness(70%) contrast(140%)';
-//         }
-//     }
-// }
+// Remove old background image handling code
 
 class BracketManager {
     constructor() {
