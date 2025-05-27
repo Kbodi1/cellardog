@@ -27,6 +27,16 @@ class BracketManager {
             // Set up real-time sync
             this.bracketRef = this.database.ref('bracket');
             console.log('Bracket reference created');
+
+            // Monitor connection state
+            const connectedRef = this.database.ref(".info/connected");
+            connectedRef.on("value", (snap) => {
+                if (snap.val() === true) {
+                    console.log("Connected to Firebase");
+                } else {
+                    console.log("Disconnected from Firebase");
+                }
+            });
             
             this.bracketRef.on('value', (snapshot) => {
                 console.log('Received database update:', snapshot.val());
@@ -37,6 +47,15 @@ class BracketManager {
             }, (error) => {
                 console.error('Database error:', error);
             });
+
+            // Test write if in controller mode
+            if (this.isController) {
+                this.bracketRef.child('test').set({
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                })
+                .then(() => console.log('Test write successful'))
+                .catch(error => console.error('Test write failed:', error));
+            }
 
             // Show/hide control menu based on controller status
             if (!this.isController) {
@@ -174,7 +193,9 @@ class BracketManager {
             state.champion = champion.textContent;
         }
 
-        this.bracketRef.set(state);
+        this.bracketRef.set(state)
+            .then(() => console.log('State broadcast successful'))
+            .catch(error => console.error('State broadcast failed:', error));
     }
 
     handleTeamClick(e) {

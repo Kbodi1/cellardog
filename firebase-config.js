@@ -1,11 +1,11 @@
 // Your web app's Firebase configuration
 const firebaseConfig = {
     // You will fill these values from your Firebase console
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyByyzp5inRy0rECPKvhwxwJ6DrjToRz824",
+    authDomain: "cellardog.firebaseapp.com",
+    databaseURL: "https://cellardog-default-rtdb.firebaseio.com",
+    projectId: "cellardog",
+    storageBucket: "cellardog.appspot.com",
+    messagingSenderId: "713540418332",
+    appId: "1:713540418332:web:24d039b8009c587c7c58d9"
 }; 
