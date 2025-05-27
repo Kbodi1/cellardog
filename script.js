@@ -460,6 +460,13 @@ class BracketManager {
                 }))
             }))
         };
+
+        // Save champion state if exists
+        const champion = document.querySelector('.champion');
+        if (champion && champion.textContent) {
+            state.champion = champion.textContent;
+        }
+
         this.history.push(state);
     }
 
@@ -483,6 +490,23 @@ class BracketManager {
                 });
             });
         });
+
+        // Check if there was a champion in the previous state
+        if (previousState.champion) {
+            this.displayChampion(previousState.champion);
+        } else {
+            // Hide champion display if there wasn't one
+            const championSlot = document.querySelector('.champion-slot');
+            const champion = document.querySelector('.champion');
+            championSlot.classList.remove('visible');
+            champion.classList.remove('visible');
+            champion.textContent = '';
+        }
+
+        // Broadcast the state change to all viewers
+        if (this.isController) {
+            this.broadcastState();
+        }
 
         this.toggleControlMenu();
     }
