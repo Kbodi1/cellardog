@@ -15,7 +15,7 @@ class BracketManager {
             // Initialize Firebase with WebSocket config
             firebase.initializeApp({
                 ...firebaseConfig,
-                databaseURL: firebaseConfig.databaseURL.replace('https://', 'wss://'),
+                databaseURL: firebaseConfig.databaseURL,
                 persistenceEnabled: false,
                 forceWebSockets: true
             });
@@ -23,9 +23,6 @@ class BracketManager {
             console.log('Firebase initialized successfully');
             
             this.database = firebase.database();
-            // Force WebSocket protocol
-            this.database.ref('.info/connected').set(firebase.database.ServerValue.TIMESTAMP);
-            
             console.log('Database reference created');
             
             // Check if this is the controller
@@ -43,30 +40,27 @@ class BracketManager {
                 if (snap.val() === true) {
                     console.log("Connected to Firebase using WebSocket");
                     // Set online presence
-                    this.bracketRef.child('_connections').push().onDisconnect().remove();
+                    if (this.isController) {
+                        this.bracketRef.child('_status').set({
+                            lastActive: firebase.database.ServerValue.TIMESTAMP,
+                            isController: true
+                        }).catch(console.error);
+                    }
                 } else {
                     console.log("Disconnected from Firebase");
                 }
             });
             
+            // Listen for updates
             this.bracketRef.on('value', (snapshot) => {
                 console.log('Received database update:', snapshot.val());
                 const state = snapshot.val();
-                if (state && !state._connections) { // Ignore connection updates
+                if (state && !state._status) { // Ignore status updates
                     this.applyState(state);
                 }
             }, (error) => {
                 console.error('Database error:', error);
             });
-
-            // Test write if in controller mode
-            if (this.isController) {
-                this.bracketRef.child('test').set({
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                })
-                .then(() => console.log('Test write successful'))
-                .catch(error => console.error('Test write failed:', error));
-            }
 
             // Show/hide control menu based on controller status
             if (!this.isController) {
