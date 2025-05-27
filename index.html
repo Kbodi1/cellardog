@@ -14,11 +14,36 @@
     
     <!-- Firebase Config -->
     <script src="firebase-config.js"></script>
+
+    <!-- Add Splitting.js -->
+    <script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css" />
 </head>
 <body>
+    <!-- VHS Effects -->
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+    <div class="noise noise-moving"></div>
+
+    <!-- Retro UI -->
+    <div class="retro-ui">
+        <div class="play" data-splitting>PLAY</div>
+        <div class="time" id="retroTime">--:--</div>
+    </div>
+
     <div class="background-overlay"></div>
     <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
-    <h1 class="tournament-title">Billiards Tournament</h1>
+    
+    <!-- New collaboration header -->
+    <div class="collaboration-header">
+        <div class="logo-container">
+            <img src="cellardogcrop.PNG" alt="Cellardog Logo">
+            <span class="separator">×</span>
+            <img src="allagash logo.png" alt="Allagash Logo">
+        </div>
+        <h1 class="tournament-title">Billiards Tournament</h1>
+    </div>
+
     <div class="bracket-container">
         <!-- Left side of bracket -->
         <div class="bracket-side left">
@@ -190,6 +215,9 @@
         </div>
     </div>
 
+    <!-- Address -->
+    <div class="address">258 S 15th Street Philadelphia, PA</div>
+
     <!-- Control Menu -->
     <div class="control-menu" id="controlMenu">
         <button id="randomizeBtn">Randomize Winner</button>
@@ -201,5 +229,22 @@
 
     <!-- Load main script after Firebase -->
     <script src="script.js"></script>
+
+    <script>
+        // Initialize Splitting
+        Splitting();
+        
+        // Add time update function
+        function updateRetroTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('retroTime').textContent = `${hours}:${minutes}`;
+        }
+        
+        // Update time every second
+        setInterval(updateRetroTime, 1000);
+        updateRetroTime(); // Initial update
+    </script>
 </body>
 </html> 

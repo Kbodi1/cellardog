@@ -91,6 +91,11 @@ class BracketManager {
 
     updateTextSize(teamElement) {
         const length = teamElement.textContent.length;
+        
+        // Remove any existing length classes
+        teamElement.removeAttribute('data-length');
+        
+        // Set appropriate length class based on text length
         if (length > 30) {
             teamElement.setAttribute('data-length', 'super-long');
         } else if (length > 25) {
@@ -99,8 +104,6 @@ class BracketManager {
             teamElement.setAttribute('data-length', 'very-long');
         } else if (length > 12) {
             teamElement.setAttribute('data-length', 'long');
-        } else {
-            teamElement.removeAttribute('data-length');
         }
     }
 

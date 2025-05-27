@@ -1,8 +1,22 @@
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&display=swap');
+
+/* Variables */
+:root {
+    --dark: #270245;
+    --light: #fd5d8d;
+    --white: #fff;
+    --retro-ui-font: 'Press Start 2P', cursive;
+    --main-font: 'Chakra Petch', sans-serif;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Press Start 2P', cursive;
 }
 
 body {
@@ -28,43 +42,97 @@ body {
     padding: 0;
 }
 
-/* Background image */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('cellardog.png');
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    opacity: 0.5;
-    z-index: -2;
-    pointer-events: none;
-    filter: brightness(0.7) contrast(1.4);
+/* Add collaboration header styles */
+.collaboration-header {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    z-index: 2;
 }
 
-.background-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    height: 120px;
+    position: relative;
     width: 100%;
-    height: 100%;
-    background: rgba(204, 0, 0, 0.75);
-    z-index: -1;
+    margin-bottom: 5px;
 }
 
-.tournament-title {
-    font-size: 2.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+.logo-container img {
+    height: 120px;
+    width: 160px;
+    object-fit: contain;
+    vertical-align: middle;
+    filter: brightness(1.2);
+}
+
+.logo-container img:first-child {
+    margin-right: 60px;
+    text-align: right;
+    filter: brightness(1.2);
+}
+
+.logo-container img:last-child {
+    margin-left: 60px;
+    text-align: left;
+    filter: brightness(1.5);
+}
+
+.logo-container .separator {
+    font-size: 2.8em;
+    color: white;
     position: absolute;
     left: 50%;
-    top: 10%;
-    transform: translate(-50%, -50%);
-    z-index: -1;
+    transform: translateX(-50%);
+    height: 120px;
+    display: flex;
+    align-items: center;
+}
+
+/* Tournament title */
+.tournament-title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.8rem;
+    transform: scale(0.95, 0.85);
+    letter-spacing: -1px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-align: center;
     white-space: nowrap;
+    margin-top: -8px;
+    line-height: 1.2;
+}
+
+/* Fullscreen adjustments for header */
+:fullscreen .collaboration-header {
+    top: 20px;
+}
+
+:fullscreen .logo-container {
+    height: 140px;
+    margin-bottom: 8px;
+}
+
+:fullscreen .logo-container img {
+    height: 140px;
+    width: 187px;
+}
+
+:fullscreen .logo-container .separator {
+    font-size: 3.2em;
+    height: 140px;
+}
+
+:fullscreen .tournament-title {
+    font-size: 2rem;
+    margin-top: -10px;
 }
 
 .fullscreen-btn {
@@ -115,11 +183,6 @@ body::before {
     min-height: 64px;
 }
 
-:fullscreen .tournament-title {
-    top: 5vh;
-    font-size: 3rem;
-}
-
 :fullscreen .round {
     height: 90vh;
     display: flex;
@@ -131,7 +194,7 @@ body::before {
 /* Adjust match spacing for different rounds in fullscreen */
 :fullscreen .round-1 .match, 
 :fullscreen .round-9 .match { 
-    margin: 1vh 0; 
+    margin: 25px 0; 
 }
 
 :fullscreen .round-2 .match, 
@@ -189,34 +252,40 @@ body::before {
     position: relative;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     width: 140px;
-    height: 64px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    height: 56px;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .team {
-    padding: 4px;
+    padding: 4px 2px;
     height: 50%;
     background: #000000;
     cursor: pointer;
     transition: all 0.2s;
     color: white;
-    font-size: clamp(0.5em, 1.2em, 1.5em);
-    white-space: nowrap;
+    font-size: clamp(0.45em, 0.8em, 1em);
     overflow: hidden;
-    text-overflow: ellipsis;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    font-family: 'Press Start 2P', cursive;
+    transform: scale(0.9, 0.8);
+    letter-spacing: -1px;
+    line-height: 1;
+    word-wrap: break-word;
+    white-space: normal;
+    hyphens: auto;
 }
 
-.team:first-child {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-}
-
+/* Center dividing line */
 .match::after {
     content: '';
     position: absolute;
@@ -226,6 +295,11 @@ body::before {
     height: 1px;
     background: rgba(255, 255, 255, 0.5);
     pointer-events: none;
+}
+
+:fullscreen .match {
+    border-width: 2px;
+    border-top: none;
 }
 
 :fullscreen .match::after {
@@ -285,18 +359,22 @@ body::before {
 }
 
 .control-menu button {
-    padding: 8px 16px;
+    padding: 12px 16px;
     border: none;
     border-radius: 2px;
     background: #cc0000;
     color: white;
     cursor: pointer;
     transition: background-color 0.2s;
-    font-family: 'Permanent Marker', cursive;
-    font-size: 0.9em;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.65em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
     width: 200px;
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: scale(0.95, 0.9);
 }
 
 .control-menu button:hover {
@@ -316,16 +394,16 @@ body::before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
 }
 
 .champion-slot {
     width: 300px;
     height: 60px;
-    margin-top: 20px;
+    margin-top: 0;
     display: none;
     position: relative;
-    top: -40px;
+    top: -80px;
 }
 
 .champion-slot.visible {
@@ -339,18 +417,21 @@ body::before {
     border-radius: 4px;
     padding: 10px;
     color: #FFD700;
-    font-size: clamp(1em, 2em, 2.5em);
+    font-size: clamp(0.8em, 1.4em, 1.8em);
+    font-weight: 600;
     text-align: center;
     line-height: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
     opacity: 0;
-    transform: translateY(-20px);
+    transform: scale(0.95, 0.9);
     transition: all 0.5s ease;
     border: 2px solid rgba(255, 215, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: 'Press Start 2P', cursive;
+    letter-spacing: -0.5px;
 }
 
 .champion.visible {
@@ -358,42 +439,64 @@ body::before {
     transform: translateY(0);
 }
 
-/* Text size adjustments */
+/* Text size adjustments with optimized scaling */
 .team[data-length="long"] {
-    font-size: clamp(0.4em, 0.8em, 1em);
+    font-size: clamp(0.35em, 0.65em, 0.8em);
+    transform: scale(0.85, 0.75);
+    padding: 2px;
+    line-height: 1.1;
 }
 
 .team[data-length="very-long"] {
-    font-size: clamp(0.3em, 0.6em, 0.8em);
+    font-size: clamp(0.3em, 0.55em, 0.7em);
+    transform: scale(0.8, 0.7);
+    padding: 1px;
+    line-height: 1.1;
 }
 
 .team[data-length="extra-long"] {
-    font-size: clamp(0.25em, 0.5em, 0.7em);
+    font-size: clamp(0.25em, 0.5em, 0.65em);
+    transform: scale(0.75, 0.65);
+    padding: 1px;
+    line-height: 1.2;
 }
 
 .team[data-length="super-long"] {
-    font-size: clamp(0.2em, 0.4em, 0.6em);
+    font-size: clamp(0.2em, 0.45em, 0.6em);
+    transform: scale(0.7, 0.6);
+    padding: 0px;
+    line-height: 1.2;
 }
 
 /* Fullscreen text adjustments */
 :fullscreen .team {
-    font-size: clamp(0.6em, 1.4em, 1.8em);
+    font-size: clamp(0.5em, 1em, 1.3em);
+    transform: scale(0.9, 0.8);
+    padding: 6px 3px;
 }
 
 :fullscreen .team[data-length="long"] {
-    font-size: clamp(0.5em, 1em, 1.2em);
+    font-size: clamp(0.45em, 0.9em, 1.1em);
+    transform: scale(0.85, 0.75);
+    padding: 4px 2px;
 }
 
 :fullscreen .team[data-length="very-long"] {
     font-size: clamp(0.4em, 0.8em, 1em);
+    transform: scale(0.8, 0.7);
+    padding: 3px 2px;
 }
 
 :fullscreen .team[data-length="extra-long"] {
     font-size: clamp(0.35em, 0.7em, 0.9em);
+    transform: scale(0.75, 0.65);
+    padding: 2px 1px;
 }
 
 :fullscreen .team[data-length="super-long"] {
     font-size: clamp(0.3em, 0.6em, 0.8em);
+    transform: scale(0.7, 0.6);
+    padding: 2px 1px;
 }
 
 :fullscreen .match {
@@ -402,4 +505,242 @@ body::before {
 
 :fullscreen .match::after {
     background: rgba(255, 255, 255, 0.5);
+}
+
+/* Adjust vertical spacing for round 1 matches */
+.round-1 .match,
+.round-9 .match {
+    margin: 12px 0;
+}
+
+/* Adjust fullscreen spacing */
+:fullscreen .round-1 .match,
+:fullscreen .round-9 .match {
+    margin: 15px 0;
+}
+
+/* VHS Retro Effects */
+body {
+    position: relative;
+    overflow: hidden;
+}
+
+body:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 0%, rgba(0,0,0,.4) 100%);
+    z-index: 500;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+}
+
+.noise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 400;
+    opacity: .4;
+    pointer-events: none;
+}
+
+.noise:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('https://ice-creme.de/images/background-noise.png');
+    pointer-events: none;
+}
+
+.noise-moving {
+    opacity: .5;
+    z-index: 450;
+}
+
+.noise-moving:before {
+    will-change: background-position;
+    animation: noise 1s infinite alternate;
+}
+
+.scanlines {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 300;
+    opacity: .3;
+    will-change: opacity;
+    animation: opacity 3s linear infinite;
+}
+
+.scanlines:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, .5) 51%);
+    background-size: 100% 4px;
+    will-change: background, background-size;
+    animation: scanlines .2s linear infinite;
+}
+
+/* Enhanced Retro UI Elements */
+.retro-ui {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    font-family: 'Press Start 2P', cursive;
+    color: var(--white);
+    font-size: 1rem;
+    z-index: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+}
+
+.play {
+    will-change: text-shadow;
+    animation: rgbText 2s steps(9) 0s infinite alternate;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    transform: scale(1);
+}
+
+.play .char {
+    will-change: opacity;
+    animation: type 1.2s infinite alternate;
+    animation-delay: calc(60ms * var(--char-index));
+}
+
+.time {
+    will-change: text-shadow;
+    animation: rgbText 1s steps(9) 0s infinite alternate;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    transform: scale(1);
+}
+
+/* Animations */
+@keyframes noise {
+    0%, 100% {background-position: 0 0;}
+    10% {background-position: -5% -10%;}
+    20% {background-position: -15% 5%;}
+    30% {background-position: 7% -25%;}
+    40% {background-position: 20% 25%;}
+    50% {background-position: -25% 10%;}
+    60% {background-position: 15% 5%;}
+    70% {background-position: 0 15%;}
+    80% {background-position: 25% 35%;}
+    90% {background-position: -10% 10%;}
+}
+
+@keyframes opacity {
+    0% {opacity: .3;}
+    20% {opacity: .2;}
+    35% {opacity: .3;}
+    50% {opacity: .4;}
+    60% {opacity: .2;}
+    80% {opacity: .3;}
+    100% {opacity: .3;}
+}
+
+@keyframes scanlines {
+    from {
+        background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, .5) 51%);
+        background-size: 100% 4px;
+    }
+    to {
+        background: linear-gradient(to bottom, rgba(0, 0, 0, .5) 50%, transparent 51%);
+        background-size: 100% 4px;
+    }
+}
+
+@keyframes rgbText {
+    0% {
+        text-shadow: -1px 1px 8px rgba(255, 255, 255, 0.6), 1px -1px 8px rgba(255, 255, 235, 0.7), 0px 0 1px rgba(251, 0, 231, 0.8), 0 0px 3px rgba(0, 233, 235, 0.8), 0px 0 3px rgba(0, 242, 14, 0.8), 0 0px 3px rgba(244, 45, 0, 0.8), 0px 0 3px rgba(59, 0, 226, 0.8);
+    }
+    50% {
+        text-shadow: -1px 1px 8px rgba(255, 255, 255, 0.6), 1px -1px 8px rgba(255, 255, 235, 0.7), -5px 0 1px rgba(251, 0, 231, 0.8), 0 -5px 1px rgba(0, 233, 235, 0.8), 5px 0 1px rgba(0, 242, 14, 0.8), 0 5px 1px rgba(244, 45, 0, 0.8), -5px 0 1px rgba(59, 0, 226, 0.8);
+    }
+    100% {
+        text-shadow: -1px 1px 8px rgba(255, 255, 255, 0.6), 1px -1px 8px rgba(255, 255, 235, 0.7), 5px 0 1px rgba(251, 0, 231, 0.8), 0 -5px 1px rgba(0, 233, 235, 0.8), -5px 0 1px rgba(0, 242, 14, 0.8), 0 5px 1px rgba(244, 45, 0, 0.8), -5px 0 1px rgba(59, 0, 226, 0.8);
+    }
+}
+
+/* Update type animation */
+@keyframes type {
+    0%, 19% {
+        opacity: 0;
+    }
+    20%, 100% {
+        opacity: 1;
+    }
+}
+
+/* Add play animation */
+@keyframes playBlink {
+    0%, 49% {
+        opacity: 1;
+    }
+    50%, 100% {
+        opacity: 0;
+    }
+}
+
+.address {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Press Start 2P', cursive;
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    z-index: 2;
+    transform: scale(0.95, 0.85) translateX(-50%);
+    letter-spacing: -0.5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+:fullscreen .address {
+    bottom: 30px;
+    font-size: 1.3rem;
+}
+
+/* Adjust fullscreen positioning */
+:fullscreen .champion-slot {
+    margin-top: 0;
+    top: -15vh;
+    transform: scale(1.2);
+}
+
+:fullscreen .round-5 .match {
+    margin: 12vh 0;
+}
+
+/* Adjust the finals match position */
+.round-5 .finals {
+    position: relative;
+    top: 20px;
+}
+
+:fullscreen .round-5 .finals {
+    top: 5vh;
 } 
