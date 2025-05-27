@@ -1,3 +1,18 @@
+// Handle background image loading
+document.addEventListener('DOMContentLoaded', function() {
+    const bgImage = document.querySelector('.background-image img');
+    if (bgImage) {
+        bgImage.onerror = function() {
+            console.error('Failed to load background image');
+            // Try with absolute path
+            this.src = window.location.origin + '/cellardog.png';
+        };
+        bgImage.onload = function() {
+            console.log('Background image loaded successfully');
+        };
+    }
+});
+
 // Remove the IE background handler
 // function handleIEBackground() {
 //     const isIE = /*@cc_on!@*/false || !!document.documentMode;
