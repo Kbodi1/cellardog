@@ -247,7 +247,7 @@
         <button onclick="randomizeWinners()">Randomize Winners</button>
         <button onclick="toggleNameEdit()">Edit Names</button>
         <button onclick="toggleFullscreen()">Enter Fullscreen</button>
-        <button onclick="undo()" ${undoStack.length === 0 ? 'disabled' : ''}>Undo Last Action</button>
+        <button onclick="undo()">Undo Last Action</button>
         <button onclick="hideOverlay()">Close Menu</button>
     </div>
     <div class="overlay-hint">Press SPACE for menu</div>
@@ -265,41 +265,10 @@
             measurementId: "G-2C0FRQKKVN"
         };
 
-        // Initialize Firebase with error handling
-        let database;
-        let bracketRef;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-            bracketRef = database.ref('bracket');
-            console.log('Firebase initialized successfully');
-        } catch (error) {
-            console.error('Firebase initialization error:', error);
-        }
-
-        // Function to sync data with Firebase
-        function syncToFirebase() {
-            if (isController && bracketRef) {
-                bracketRef.set(bracketData).catch(error => {
-                    console.error('Error syncing to Firebase:', error);
-                });
-            }
-        }
-
-        // Listen for changes in Firebase
-        if (bracketRef) {
-            bracketRef.on('value', (snapshot) => {
-                if (!isController) {
-                    const data = snapshot.val();
-                    if (data) {
-                        bracketData = data;
-                        renderBracket();
-                    }
-                }
-            }, (error) => {
-                console.error('Error reading from Firebase:', error);
-            });
-        }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const bracketRef = database.ref('bracket');
 
         let bracketData = {
             left: [],
@@ -307,13 +276,31 @@
             final: null
         };
         let undoStack = [];
+        let isController = false;
+
+        // Function to sync data with Firebase
+        function syncToFirebase() {
+            if (isController) {
+                bracketRef.set(bracketData);
+            }
+        }
+
+        // Listen for changes in Firebase
+        bracketRef.on('value', (snapshot) => {
+            if (!isController) {
+                const data = snapshot.val();
+                if (data) {
+                    bracketData = data;
+                    renderBracket();
+                }
+            }
+        });
 
         function createInitialRounds() {
             const participants = Array.from({length: 32}, (_, i) => `Player ${i + 1}`);
             const leftParticipants = participants.slice(0, 16);
             const rightParticipants = participants.slice(16);
 
-            // Create matches for left bracket
             bracketData.left = [
                 createRoundMatches(leftParticipants),
                 Array(4).fill().map(() => ({ team1: null, team2: null, winner: null })),
@@ -321,7 +308,6 @@
                 [{ team1: null, team2: null, winner: null }]
             ];
 
-            // Create matches for right bracket
             bracketData.right = [
                 createRoundMatches(rightParticipants),
                 Array(4).fill().map(() => ({ team1: null, team2: null, winner: null })),
@@ -329,8 +315,8 @@
                 [{ team1: null, team2: null, winner: null }]
             ];
 
-            // Final match
             bracketData.final = { team1: null, team2: null, winner: null };
+            syncToFirebase();
         }
 
         function createRoundMatches(participants) {
@@ -395,27 +381,8 @@
             `;
         }
 
-        function saveState() {
-            undoStack.push(JSON.stringify({
-                left: bracketData.left,
-                right: bracketData.right,
-                final: bracketData.final
-            }));
-        }
-
-        function undo() {
-            if (undoStack.length > 0) {
-                const previousState = JSON.parse(undoStack.pop());
-                bracketData.left = previousState.left;
-                bracketData.right = previousState.right;
-                bracketData.final = previousState.final;
-                renderBracket();
-            }
-            hideOverlay();
-        }
-
         function selectWinner(side, roundIndex, matchIndex, team) {
-            if (!team || team === '---') return;
+            if (!team || team === '---' || !isController) return;
             
             const match = bracketData[side][roundIndex][matchIndex];
             if (match.team1 && match.team2) {
@@ -438,20 +405,53 @@
                     }
                 }
                 
+                syncToFirebase();
                 renderBracket();
             }
         }
 
         function selectFinalWinner(team) {
-            if (!team || team === '---') return;
+            if (!team || team === '---' || !isController) return;
             if (bracketData.final.team1 && bracketData.final.team2) {
                 saveState();
                 bracketData.final.winner = team;
+                syncToFirebase();
                 renderBracket();
             }
         }
 
+        function saveState() {
+            undoStack.push(JSON.stringify({
+                left: bracketData.left,
+                right: bracketData.right,
+                final: bracketData.final
+            }));
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                const previousState = JSON.parse(undoStack.pop());
+                bracketData.left = previousState.left;
+                bracketData.right = previousState.right;
+                bracketData.final = previousState.final;
+                syncToFirebase();
+                renderBracket();
+            }
+            hideOverlay();
+        }
+
+        let isNameEditMode = false;
+
+        function toggleNameEdit() {
+            if (!isController) return;
+            isNameEditMode = !isNameEditMode;
+            document.body.classList.toggle('name-edit-mode', isNameEditMode);
+            renderBracket();
+            hideOverlay();
+        }
+
         function handleTeamNameUpdate(side, roundIndex, matchIndex, teamNum, element) {
+            if (!isController) return;
             const newName = element.textContent.trim();
             saveState();
             const match = bracketData[side][roundIndex][matchIndex];
@@ -460,9 +460,11 @@
             } else {
                 match.team2 = newName || null;
             }
+            syncToFirebase();
         }
 
         function randomizeWinners() {
+            if (!isController) return;
             saveState();
             bracketData.left.forEach((round, roundIndex) => {
                 round.forEach((match, matchIndex) => {
@@ -488,36 +490,34 @@
             }
         }
 
-        function initializeBracket() {
-            undoStack = [];
-            createInitialRounds();
-            renderBracket();
-        }
-
-        let isNameEditMode = false;
-
-        function toggleNameEdit() {
-            isNameEditMode = !isNameEditMode;
-            document.body.classList.toggle('name-edit-mode', isNameEditMode);
-            const button = document.querySelector('button[onclick="toggleNameEdit()"]');
-            button.textContent = isNameEditMode ? 'Done Editing' : 'Edit Names';
-            renderBracket();
-            hideOverlay();
-        }
-
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
             }
             hideOverlay();
         }
 
         function showOverlay() {
-            document.getElementById('controls').classList.add('visible');
+            if (isController) {
+                document.getElementById('controls').classList.add('visible');
+            }
         }
 
         function hideOverlay() {
             document.getElementById('controls').classList.remove('visible');
+        }
+
+        // Check for controller mode
+        function checkControllerMode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            isController = urlParams.get('mode') === 'controller';
+            
+            // Hide controls if not in controller mode
+            if (!isController) {
+                document.querySelector('.overlay-hint').style.display = 'none';
+            }
         }
 
         // Event listeners
@@ -540,9 +540,10 @@
 
         // Initialize
         window.onload = () => {
+            checkControllerMode();
             initializeBracket();
             hideOverlay();
         };
     </script>
 </body>
-</html>
+</html> 
