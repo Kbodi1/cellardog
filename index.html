@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billiards Tournament</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+    <div class="background-overlay"></div>
+    <h1 class="tournament-title">Billiards Tournament</h1>
+    <div class="bracket-container">
+        <!-- Left side of bracket -->
+        <div class="bracket-side left">
+            <!-- Round 1 (First) -->
+            <div class="round round-1">
+                <div class="match" data-match-id="1">
+                    <div class="team team1" data-team-id="1">Team 1</div>
+                    <div class="team team2" data-team-id="2">Team 2</div>
+                </div>
+                <div class="match" data-match-id="2">
+                    <div class="team team1" data-team-id="3">Team 3</div>
+                    <div class="team team2" data-team-id="4">Team 4</div>
+                </div>
+                <div class="match" data-match-id="3">
+                    <div class="team team1" data-team-id="5">Team 5</div>
+                    <div class="team team2" data-team-id="6">Team 6</div>
+                </div>
+                <div class="match" data-match-id="4">
+                    <div class="team team1" data-team-id="7">Team 7</div>
+                    <div class="team team2" data-team-id="8">Team 8</div>
+                </div>
+                <div class="match" data-match-id="5">
+                    <div class="team team1" data-team-id="9">Team 9</div>
+                    <div class="team team2" data-team-id="10">Team 10</div>
+                </div>
+                <div class="match" data-match-id="6">
+                    <div class="team team1" data-team-id="11">Team 11</div>
+                    <div class="team team2" data-team-id="12">Team 12</div>
+                </div>
+                <div class="match" data-match-id="7">
+                    <div class="team team1" data-team-id="13">Team 13</div>
+                    <div class="team team2" data-team-id="14">Team 14</div>
+                </div>
+                <div class="match" data-match-id="8">
+                    <div class="team team1" data-team-id="15">Team 15</div>
+                    <div class="team team2" data-team-id="16">Team 16</div>
+                </div>
+            </div>
+
+            <!-- Round 2 -->
+            <div class="round round-2">
+                <div class="match" data-match-id="9">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="10">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="11">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="12">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Quarter Finals -->
+            <div class="round round-3">
+                <div class="match" data-match-id="13">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="14">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Semi Finals -->
+            <div class="round round-4">
+                <div class="match" data-match-id="15">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finals (Center) -->
+        <div class="round round-5">
+            <div class="match finals" data-match-id="16">
+                <div class="team team1"></div>
+                <div class="team team2"></div>
+            </div>
+            <div class="champion-slot">
+                <div class="champion"></div>
+            </div>
+        </div>
+
+        <!-- Right side of bracket -->
+        <div class="bracket-side right">
+            <!-- Semi Finals -->
+            <div class="round round-6">
+                <div class="match" data-match-id="17">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Quarter Finals -->
+            <div class="round round-7">
+                <div class="match" data-match-id="18">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="19">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Round 2 -->
+            <div class="round round-8">
+                <div class="match" data-match-id="20">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="21">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="22">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="23">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Round 1 (Last) -->
+            <div class="round round-9">
+                <div class="match" data-match-id="24">
+                    <div class="team team1" data-team-id="17">Team 17</div>
+                    <div class="team team2" data-team-id="18">Team 18</div>
+                </div>
+                <div class="match" data-match-id="25">
+                    <div class="team team1" data-team-id="19">Team 19</div>
+                    <div class="team team2" data-team-id="20">Team 20</div>
+                </div>
+                <div class="match" data-match-id="26">
+                    <div class="team team1" data-team-id="21">Team 21</div>
+                    <div class="team team2" data-team-id="22">Team 22</div>
+                </div>
+                <div class="match" data-match-id="27">
+                    <div class="team team1" data-team-id="23">Team 23</div>
+                    <div class="team team2" data-team-id="24">Team 24</div>
+                </div>
+                <div class="match" data-match-id="28">
+                    <div class="team team1" data-team-id="25">Team 25</div>
+                    <div class="team team2" data-team-id="26">Team 26</div>
+                </div>
+                <div class="match" data-match-id="29">
+                    <div class="team team1" data-team-id="27">Team 27</div>
+                    <div class="team team2" data-team-id="28">Team 28</div>
+                </div>
+                <div class="match" data-match-id="30">
+                    <div class="team team1" data-team-id="29">Team 29</div>
+                    <div class="team team2" data-team-id="30">Team 30</div>
+                </div>
+                <div class="match" data-match-id="31">
+                    <div class="team team1" data-team-id="31">Team 31</div>
+                    <div class="team team2" data-team-id="32">Team 32</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Menu -->
+    <div class="control-menu" id="controlMenu">
+        <button id="randomizeBtn">Randomize Winner</button>
+        <button id="resetBtn">Reset Bracket</button>
+        <button id="undoBtn">Undo Last Action</button>
+        <button id="editNameBtn">Edit Team Name</button>
+        <button id="closeMenuBtn">Close Menu</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
