@@ -10,35 +10,49 @@ class BracketManager {
     }
 
     setupFirebase() {
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        this.database = firebase.database();
-        
-        // Check if this is the controller
-        const urlParams = new URLSearchParams(window.location.search);
-        this.isController = urlParams.get('controller') === 'true';
-        
-        // Set up real-time sync
-        this.bracketRef = this.database.ref('bracket');
-        this.bracketRef.on('value', (snapshot) => {
-            const state = snapshot.val();
-            if (state) {
-                this.applyState(state);
-            }
-        });
-
-        // Show/hide control menu based on controller status
-        if (!this.isController) {
-            document.querySelectorAll('.team').forEach(team => {
-                team.style.cursor = 'default';
-                team.style.pointerEvents = 'none';
-            });
-            document.addEventListener('keydown', (e) => {
-                if (e.code === 'Space') {
-                    e.preventDefault();
+        try {
+            console.log('Initializing Firebase...');
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully');
+            
+            this.database = firebase.database();
+            console.log('Database reference created');
+            
+            // Check if this is the controller
+            const urlParams = new URLSearchParams(window.location.search);
+            this.isController = urlParams.get('controller') === 'true';
+            console.log('Controller mode:', this.isController);
+            
+            // Set up real-time sync
+            this.bracketRef = this.database.ref('bracket');
+            console.log('Bracket reference created');
+            
+            this.bracketRef.on('value', (snapshot) => {
+                console.log('Received database update:', snapshot.val());
+                const state = snapshot.val();
+                if (state) {
+                    this.applyState(state);
                 }
+            }, (error) => {
+                console.error('Database error:', error);
             });
-            this.controlMenu.style.display = 'none';
+
+            // Show/hide control menu based on controller status
+            if (!this.isController) {
+                document.querySelectorAll('.team').forEach(team => {
+                    team.style.cursor = 'default';
+                    team.style.pointerEvents = 'none';
+                });
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                    }
+                });
+                this.controlMenu.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Firebase setup error:', error);
         }
     }
 
