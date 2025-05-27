@@ -291,7 +291,6 @@
             const leftParticipants = participants.slice(0, 16);
             const rightParticipants = participants.slice(16);
 
-            // Create 5 rounds for each side (16->8->4->2->1)
             bracketData.left = [
                 createRoundMatches(leftParticipants),  // Round 1: 8 matches (16 players)
                 Array(8).fill().map(() => ({ team1: null, team2: null, winner: null })), // Round 2: 8 matches
@@ -313,16 +312,15 @@
         }
 
         function createRoundMatches(participants) {
-            return participants.reduce((matches, player, index) => {
-                if (index % 2 === 0) {
-                    matches.push({
-                        team1: player,
-                        team2: participants[index + 1],
-                        winner: null
-                    });
-                }
-                return matches;
-            }, []);
+            const matches = [];
+            for (let i = 0; i < participants.length; i += 2) {
+                matches.push({
+                    team1: participants[i],
+                    team2: participants[i + 1] || null,
+                    winner: null
+                });
+            }
+            return matches;
         }
 
         function renderBracket() {
@@ -381,19 +379,20 @@
             const finalContainer = document.getElementById('finalMatch');
             const match = bracketData.final;
             const shouldShowLoser = match.team1 && match.team2 && match.winner;
+            
             finalContainer.innerHTML = `
                 <div class="match">
                     <div class="team ${match.winner === match.team1 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team2 ? 'loser' : ''}" 
-                         onclick="selectFinalWinner('${match.team1}')">${match.team1 || ''}</div>
+                         onclick="${isController ? `selectFinalWinner('${match.team1}')` : ''}">${match.team1 || ''}</div>
                     <div class="team ${match.winner === match.team2 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team1 ? 'loser' : ''}"
-                         onclick="selectFinalWinner('${match.team2}')">${match.team2 || ''}</div>
+                         onclick="${isController ? `selectFinalWinner('${match.team2}')` : ''}">${match.team2 || ''}</div>
                 </div>
                 ${match.winner ? `<div class="champion-box">${match.winner}</div>` : ''}
             `;
         }
 
         function selectWinner(side, roundIndex, matchIndex, team) {
-            if (!team || team === '---' || !isController) return;
+            if (!isController || !team || team === '---') return;
             
             const match = bracketData[side][roundIndex][matchIndex];
             if (match.team1 && match.team2) {
@@ -422,7 +421,7 @@
         }
 
         function selectFinalWinner(team) {
-            if (!team || team === '---' || !isController) return;
+            if (!isController || !team || team === '---') return;
             if (bracketData.final.team1 && bracketData.final.team2) {
                 saveState();
                 bracketData.final.winner = team;
@@ -432,22 +431,16 @@
         }
 
         function saveState() {
-            undoStack.push(JSON.stringify({
-                left: bracketData.left,
-                right: bracketData.right,
-                final: bracketData.final
-            }));
+            undoStack.push(JSON.stringify(bracketData));
         }
 
         function undo() {
-            if (undoStack.length > 0 && isController) {
-                const previousState = JSON.parse(undoStack.pop());
-                bracketData.left = previousState.left;
-                bracketData.right = previousState.right;
-                bracketData.final = previousState.final;
-                syncToFirebase();
-                renderBracket();
-            }
+            if (!isController || undoStack.length === 0) return;
+            
+            const previousState = JSON.parse(undoStack.pop());
+            bracketData = previousState;
+            syncToFirebase();
+            renderBracket();
             hideOverlay();
         }
 
@@ -464,12 +457,39 @@
             const newName = element.textContent.trim();
             saveState();
             const match = bracketData[side][roundIndex][matchIndex];
+            
             if (teamNum === 1) {
                 match.team1 = newName || null;
             } else {
                 match.team2 = newName || null;
             }
+            
+            // Clear winners if a team name is changed
+            if (match.winner === (teamNum === 1 ? match.team1 : match.team2)) {
+                match.winner = null;
+                // Clear subsequent rounds
+                clearSubsequentRounds(side, roundIndex, matchIndex);
+            }
+            
             syncToFirebase();
+        }
+
+        function clearSubsequentRounds(side, roundIndex, matchIndex) {
+            if (roundIndex >= bracketData[side].length - 1) return;
+            
+            const nextRoundMatch = Math.floor(matchIndex / 2);
+            const nextMatch = bracketData[side][roundIndex + 1][nextRoundMatch];
+            const isFirstTeam = matchIndex % 2 === 0;
+            
+            if (isFirstTeam) {
+                nextMatch.team1 = null;
+            } else {
+                nextMatch.team2 = null;
+            }
+            
+            if (nextMatch.winner === null) {
+                clearSubsequentRounds(side, roundIndex + 1, nextRoundMatch);
+            }
         }
 
         function randomizeWinners() {
@@ -485,6 +505,7 @@
                 });
             };
 
+            // Process all rounds in order
             for (let i = 0; i < bracketData.left.length; i++) {
                 processRound('left', i);
                 processRound('right', i);
@@ -505,9 +526,6 @@
         }
 
         function initializeBracket() {
-            if (isController) {
-                createInitialRounds();
-            }
             bracketRef.once('value').then((snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -538,15 +556,13 @@
             document.getElementById('controls').classList.remove('visible');
         }
 
-        // Check for controller mode
         function checkControllerMode() {
             const urlParams = new URLSearchParams(window.location.search);
             isController = urlParams.get('mode') === 'controller';
             
-            if (!isController) {
-                document.querySelector('.overlay-hint').style.display = 'none';
-            } else {
-                document.querySelector('.overlay-hint').style.display = 'block';
+            const overlayHint = document.querySelector('.overlay-hint');
+            if (overlayHint) {
+                overlayHint.style.display = isController ? 'block' : 'none';
             }
         }
 
