@@ -18,6 +18,16 @@ body {
     overflow-y: auto;
 }
 
+/* Hide scrollbar in fullscreen */
+:fullscreen {
+    overflow: hidden !important;
+}
+
+:fullscreen body {
+    overflow: hidden !important;
+    padding: 0;
+}
+
 /* Background image */
 body::before {
     content: '';
@@ -84,14 +94,17 @@ body::before {
     gap: 10px;
     padding: 10px;
     transition: all 0.3s ease;
+    height: 100%;
 }
 
 /* Fullscreen specific adjustments */
 :fullscreen .bracket-container {
-    height: 95vh;
-    max-width: 95vw;
-    margin: 2vh auto;
-    align-items: stretch;
+    height: 100vh;
+    max-width: 98vw;
+    margin: 0 auto;
+    padding: 2vh 1vw;
+    align-items: center;
+    gap: 0.5vw;
 }
 
 :fullscreen .match {
@@ -103,7 +116,7 @@ body::before {
 }
 
 :fullscreen .tournament-title {
-    top: 8%;
+    top: 5vh;
     font-size: 3rem;
 }
 
@@ -112,6 +125,7 @@ body::before {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+    padding: 2vh 0;
 }
 
 /* Adjust match spacing for different rounds in fullscreen */
