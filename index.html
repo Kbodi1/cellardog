@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billiards Tournament Bracket</title>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Permanent Marker', cursive;
+            margin: 0;
+            padding: 20px;
+            background-color: #cc0000;
+            color: white;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('cellardog.png') center center no-repeat;
+            background-size: contain;
+            opacity: 0.2;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .controls {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .controls.visible {
+            display: flex;
+        }
+        .controls button {
+            padding: 12px 24px;
+            margin: 5px;
+            background-color: #000;
+            color: white;
+            border: 2px solid white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 18px;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+        .controls button:hover {
+            background-color: #333;
+            transform: scale(1.05);
+        }
+        .controls .menu-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .name-edit-mode .team {
+            cursor: text;
+        }
+        .overlay-hint {
+            display: none;
+        }
+        .tournament-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+            margin: 0 auto;
+            max-width: 1600px;
+            gap: 20px;
+            margin-bottom: 80px;
+        }
+        .bracket-half {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+            gap: 20px;
+            max-width: 750px;
+        }
+        .bracket-left {
+            justify-content: flex-end;
+        }
+        .bracket-right {
+            justify-content: flex-start;
+            flex-direction: row-reverse;
+        }
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            margin: 0 5px;
+        }
+        .match {
+            display: flex;
+            flex-direction: column;
+            margin: 5px 0;
+            position: relative;
+            background-color: #000;
+            border: 2px solid white;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .team {
+            background-color: #000;
+            padding: 12px 8px;
+            width: 140px;
+            min-height: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            font-size: 14px;
+            position: relative;
+            border: none;
+            border-radius: 0;
+            margin: 0;
+            border-bottom: 1px solid white;
+            user-select: none;
+        }
+        .team[contenteditable="true"] {
+            cursor: text;
+            outline: 1px solid #666;
+            user-select: text;
+        }
+        .team[contenteditable="true"]:focus {
+            outline: 2px solid white;
+            background-color: #1a1a1a;
+        }
+        .team[contenteditable="true"]:empty:before {
+            content: '---';
+            color: #666;
+        }
+        .team:last-child {
+            border-bottom: none;
+        }
+        .team:hover {
+            background-color: #333;
+        }
+        .team.winner {
+            background-color: #1a1a1a;
+        }
+        .match .team.loser {
+            color: #ff4444;
+            text-decoration: line-through;
+        }
+        .connector {
+            position: absolute;
+            right: -20px;
+            width: 20px;
+            border-top: 2px solid white;
+            top: 50%;
+        }
+        .connector-right {
+            position: absolute;
+            left: -20px;
+            width: 20px;
+            border-top: 2px solid white;
+            top: 50%;
+        }
+        .vertical-connector {
+            position: absolute;
+            border-right: 2px solid white;
+        }
+        .bracket-right .vertical-connector {
+            border-left: 2px solid white;
+            border-right: none;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 1;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 10px;
+            background-color: #000;
+            color: white;
+            border: 2px solid white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #333;
+            transform: scale(1.05);
+        }
+        .final-match {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 30px;
+            min-width: 160px;
+        }
+        .final-match .match {
+            margin-bottom: 20px;
+        }
+        .champion-box {
+            background-color: #000;
+            border: 2px solid gold;
+            padding: 12px;
+            margin-top: 20px;
+            width: 160px;
+            text-align: center;
+            border-radius: 4px;
+            color: gold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Billiards Tournament</h1>
+    <div class="tournament-container">
+        <div class="bracket-half bracket-left" id="leftBracket"></div>
+        <div class="final-match" id="finalMatch"></div>
+        <div class="bracket-half bracket-right" id="rightBracket"></div>
+    </div>
+    <div class="controls" id="controls">
+        <div class="menu-title">Tournament Controls</div>
+        <button onclick="initializeBracket()">Reset Bracket</button>
+        <button onclick="randomizeWinners()">Randomize Winners</button>
+        <button onclick="toggleNameEdit()">Edit Names</button>
+        <button onclick="toggleFullscreen()">Enter Fullscreen</button>
+        <button onclick="undo()" ${undoStack.length === 0 ? 'disabled' : ''}>Undo Last Action</button>
+        <button onclick="hideOverlay()">Close Menu</button>
+    </div>
+    <div class="overlay-hint">Press SPACE for menu</div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCMUNU2z5qhEeTzYoE7g3bPga8Be5_doYU",
+            authDomain: "cellardogbracket.firebaseapp.com",
+            databaseURL: "https://cellardogbracket-default-rtdb.firebaseio.com",
+            projectId: "cellardogbracket",
+            storageBucket: "cellardogbracket.firebasestorage.app",
+            messagingSenderId: "1055632970085",
+            appId: "1:1055632970085:web:d115dbd3480a368afe518c",
+            measurementId: "G-2C0FRQKKVN"
+        };
+
+        // Initialize Firebase with error handling
+        let database;
+        let bracketRef;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            bracketRef = database.ref('bracket');
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+        }
+
+        // Function to sync data with Firebase
+        function syncToFirebase() {
+            if (isController && bracketRef) {
+                bracketRef.set(bracketData).catch(error => {
+                    console.error('Error syncing to Firebase:', error);
+                });
+            }
+        }
+
+        // Listen for changes in Firebase
+        if (bracketRef) {
+            bracketRef.on('value', (snapshot) => {
+                if (!isController) {
+                    const data = snapshot.val();
+                    if (data) {
+                        bracketData = data;
+                        renderBracket();
+                    }
+                }
+            }, (error) => {
+                console.error('Error reading from Firebase:', error);
+            });
+        }
+
+        let bracketData = {
+            left: [],
+            right: [],
+            final: null
+        };
+        let undoStack = [];
+
+        function createInitialRounds() {
+            const participants = Array.from({length: 32}, (_, i) => `Player ${i + 1}`);
+            const leftParticipants = participants.slice(0, 16);
+            const rightParticipants = participants.slice(16);
+
+            // Create matches for left bracket
+            bracketData.left = [
+                createRoundMatches(leftParticipants),
+                Array(4).fill().map(() => ({ team1: null, team2: null, winner: null })),
+                Array(2).fill().map(() => ({ team1: null, team2: null, winner: null })),
+                [{ team1: null, team2: null, winner: null }]
+            ];
+
+            // Create matches for right bracket
+            bracketData.right = [
+                createRoundMatches(rightParticipants),
+                Array(4).fill().map(() => ({ team1: null, team2: null, winner: null })),
+                Array(2).fill().map(() => ({ team1: null, team2: null, winner: null })),
+                [{ team1: null, team2: null, winner: null }]
+            ];
+
+            // Final match
+            bracketData.final = { team1: null, team2: null, winner: null };
+        }
+
+        function createRoundMatches(participants) {
+            return participants.reduce((matches, player, index) => {
+                if (index % 2 === 0) {
+                    matches.push({
+                        team1: player,
+                        team2: participants[index + 1],
+                        winner: null
+                    });
+                }
+                return matches;
+            }, []);
+        }
+
+        function renderBracket() {
+            renderHalf('leftBracket', bracketData.left, 'left');
+            renderHalf('rightBracket', bracketData.right, 'right');
+            renderFinal();
+        }
+
+        function renderHalf(containerId, rounds, side) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            rounds.forEach((round, roundIndex) => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'round';
+                
+                roundDiv.innerHTML = round.map((match, matchIndex) => {
+                    const shouldShowLoser = match.team1 && match.team2 && match.winner;
+                    return `
+                        <div class="match">
+                            <div class="team ${match.winner === match.team1 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team2 ? 'loser' : ''}" 
+                                 ${isNameEditMode ? 'contenteditable="true"' : ''}
+                                 ${isNameEditMode ? `onblur="handleTeamNameUpdate('${side}', ${roundIndex}, ${matchIndex}, 1, this)"` : `onclick="selectWinner('${side}', ${roundIndex}, ${matchIndex}, '${match.team1}')"`}
+                                 >${match.team1 || ''}</div>
+                            <div class="team ${match.winner === match.team2 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team1 ? 'loser' : ''}"
+                                 ${isNameEditMode ? 'contenteditable="true"' : ''}
+                                 ${isNameEditMode ? `onblur="handleTeamNameUpdate('${side}', ${roundIndex}, ${matchIndex}, 2, this)"` : `onclick="selectWinner('${side}', ${roundIndex}, ${matchIndex}, '${match.team2}')"`}
+                                 >${match.team2 || ''}</div>
+                        </div>
+                    `;
+                }).join('');
+                
+                container.appendChild(roundDiv);
+            });
+        }
+
+        function renderFinal() {
+            const finalContainer = document.getElementById('finalMatch');
+            const match = bracketData.final;
+            const shouldShowLoser = match.team1 && match.team2 && match.winner;
+            finalContainer.innerHTML = `
+                <div class="match">
+                    <div class="team ${match.winner === match.team1 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team2 ? 'loser' : ''}" 
+                         onclick="selectFinalWinner('${match.team1}')">${match.team1 || ''}</div>
+                    <div class="team ${match.winner === match.team2 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team1 ? 'loser' : ''}"
+                         onclick="selectFinalWinner('${match.team2}')">${match.team2 || ''}</div>
+                </div>
+                ${match.winner ? `<div class="champion-box">${match.winner}</div>` : ''}
+            `;
+        }
+
+        function saveState() {
+            undoStack.push(JSON.stringify({
+                left: bracketData.left,
+                right: bracketData.right,
+                final: bracketData.final
+            }));
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                const previousState = JSON.parse(undoStack.pop());
+                bracketData.left = previousState.left;
+                bracketData.right = previousState.right;
+                bracketData.final = previousState.final;
+                renderBracket();
+            }
+            hideOverlay();
+        }
+
+        function selectWinner(side, roundIndex, matchIndex, team) {
+            if (!team || team === '---') return;
+            
+            const match = bracketData[side][roundIndex][matchIndex];
+            if (match.team1 && match.team2) {
+                saveState();
+                match.winner = team;
+                
+                if (roundIndex < bracketData[side].length - 1) {
+                    const nextRoundMatch = Math.floor(matchIndex / 2);
+                    const nextMatch = bracketData[side][roundIndex + 1][nextRoundMatch];
+                    if (matchIndex % 2 === 0) {
+                        nextMatch.team1 = team;
+                    } else {
+                        nextMatch.team2 = team;
+                    }
+                } else if (roundIndex === bracketData[side].length - 1) {
+                    if (side === 'left') {
+                        bracketData.final.team1 = team;
+                    } else {
+                        bracketData.final.team2 = team;
+                    }
+                }
+                
+                renderBracket();
+            }
+        }
+
+        function selectFinalWinner(team) {
+            if (!team || team === '---') return;
+            if (bracketData.final.team1 && bracketData.final.team2) {
+                saveState();
+                bracketData.final.winner = team;
+                renderBracket();
+            }
+        }
+
+        function handleTeamNameUpdate(side, roundIndex, matchIndex, teamNum, element) {
+            const newName = element.textContent.trim();
+            saveState();
+            const match = bracketData[side][roundIndex][matchIndex];
+            if (teamNum === 1) {
+                match.team1 = newName || null;
+            } else {
+                match.team2 = newName || null;
+            }
+        }
+
+        function randomizeWinners() {
+            saveState();
+            bracketData.left.forEach((round, roundIndex) => {
+                round.forEach((match, matchIndex) => {
+                    if (match.team1 && match.team2) {
+                        const winner = Math.random() < 0.5 ? match.team1 : match.team2;
+                        selectWinner('left', roundIndex, matchIndex, winner);
+                    }
+                });
+            });
+
+            bracketData.right.forEach((round, roundIndex) => {
+                round.forEach((match, matchIndex) => {
+                    if (match.team1 && match.team2) {
+                        const winner = Math.random() < 0.5 ? match.team1 : match.team2;
+                        selectWinner('right', roundIndex, matchIndex, winner);
+                    }
+                });
+            });
+
+            if (bracketData.final.team1 && bracketData.final.team2) {
+                const winner = Math.random() < 0.5 ? bracketData.final.team1 : bracketData.final.team2;
+                selectFinalWinner(winner);
+            }
+        }
+
+        function initializeBracket() {
+            undoStack = [];
+            createInitialRounds();
+            renderBracket();
+        }
+
+        let isNameEditMode = false;
+
+        function toggleNameEdit() {
+            isNameEditMode = !isNameEditMode;
+            document.body.classList.toggle('name-edit-mode', isNameEditMode);
+            const button = document.querySelector('button[onclick="toggleNameEdit()"]');
+            button.textContent = isNameEditMode ? 'Done Editing' : 'Edit Names';
+            renderBracket();
+            hideOverlay();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            }
+            hideOverlay();
+        }
+
+        function showOverlay() {
+            document.getElementById('controls').classList.add('visible');
+        }
+
+        function hideOverlay() {
+            document.getElementById('controls').classList.remove('visible');
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                showOverlay();
+            } else if (e.code === 'Escape') {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+                hideOverlay();
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            const fullscreenBtn = document.querySelector('button[onclick="toggleFullscreen()"]');
+            fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Enter Fullscreen';
+        });
+
+        // Initialize
+        window.onload = () => {
+            initializeBracket();
+            hideOverlay();
+        };
+    </script>
+</body>
+</html>
