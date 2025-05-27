@@ -3,660 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>March Madness Style Tournament Bracket</title>
+    <title>Billiards Tournament</title>
+    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
-    <!-- Add Firebase SDK -->
+    
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <style>
-        :root {
-            --match-width: 200px;
-            --match-height: 80px;
-            --round-gap: 100px;
-            --vertical-spacing: 40px;
-            --connector-thickness: 2px;
-        }
-
-        body {
-            font-family: 'Permanent Marker', cursive;
-            margin: 0;
-            padding: 20px;
-            background-color: #cc0000;
-            color: white;
-            position: relative;
-            min-height: 100vh;
-            overflow-x: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('cellardog.png') center center no-repeat;
-            background-size: contain;
-            opacity: 0.2;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .controls {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .controls.visible {
-            display: flex;
-        }
-        .controls button {
-            padding: 12px 24px;
-            margin: 5px;
-            background-color: #000;
-            color: white;
-            border: 2px solid white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Permanent Marker', cursive;
-            font-size: 18px;
-            transition: all 0.3s;
-            min-width: 200px;
-        }
-        .controls button:hover {
-            background-color: #333;
-            transform: scale(1.05);
-        }
-        .controls .menu-title {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: white;
-        }
-        .name-edit-mode .team {
-            cursor: text;
-        }
-        .overlay-hint {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 10px 20px;
-            border-radius: 4px;
-            z-index: 99;
-        }
-        .tournament-container {
-            display: grid;
-            grid-template-columns: repeat(9, minmax(var(--match-width), 1fr));
-            gap: var(--round-gap);
-            padding: 40px;
-            position: relative;
-            z-index: 1;
-            min-width: max-content;
-            margin: 0 auto;
-        }
-        .round {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            gap: var(--vertical-spacing);
-            position: relative;
-            min-height: 500px;
-        }
-        .round-1-left { grid-column: 1; }
-        .round-2-left { grid-column: 2; }
-        .round-3-left { grid-column: 3; }
-        .round-4-left { grid-column: 4; }
-        .finals { grid-column: 5; align-self: center; }
-        .round-4-right { grid-column: 6; }
-        .round-3-right { grid-column: 7; }
-        .round-2-right { grid-column: 8; }
-        .round-1-right { grid-column: 9; }
-        .match {
-            width: var(--match-width);
-            height: var(--match-height);
-            background: #000;
-            border: 2px solid white;
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-        .team {
-            flex: 1;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #333;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            user-select: none;
-            color: white;
-            background: #000;
-        }
-        .team:last-child {
-            border-bottom: none;
-        }
-        .team:hover {
-            background-color: #222;
-        }
-        .team.winner {
-            background-color: #1a1a1a;
-            font-weight: bold;
-        }
-        .team.loser {
-            color: #666;
-            text-decoration: line-through;
-        }
-        .team[contenteditable="true"] {
-            cursor: text;
-            outline: 1px solid #666;
-        }
-        .team[contenteditable="true"]:focus {
-            outline: 2px solid white;
-            background-color: #1a1a1a;
-        }
-        .connector {
-            position: absolute;
-            background: white;
-        }
-        .connector-horizontal {
-            height: var(--connector-thickness);
-            width: var(--round-gap);
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        .connector-horizontal-right {
-            right: calc(var(--match-width) * -1 - var(--round-gap) + 2px);
-        }
-        .connector-horizontal-left {
-            left: calc(var(--match-width) * -1 - var(--round-gap) + 2px);
-        }
-        .connector-vertical {
-            width: var(--connector-thickness);
-            position: absolute;
-        }
-        .connector-vertical-right {
-            right: calc(var(--match-width) * -1 - var(--round-gap) + 2px);
-        }
-        .connector-vertical-left {
-            left: calc(var(--match-width) * -1 - var(--round-gap) + 2px);
-        }
-        .champion-box {
-            width: var(--match-width);
-            padding: 15px;
-            background: #000;
-            border: 2px solid gold;
-            border-radius: 4px;
-            text-align: center;
-            color: gold;
-            margin-top: 20px;
-            font-size: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            font-size: 36px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            position: relative;
-            z-index: 1;
-        }
-        button {
-            padding: 8px 16px;
-            margin: 0 10px;
-            background-color: #000;
-            color: white;
-            border: 2px solid white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Permanent Marker', cursive;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        button:hover {
-            background-color: #333;
-            transform: scale(1.05);
-        }
-        @media (max-width: 2400px) {
-            .tournament-container {
-                transform: scale(0.9);
-                transform-origin: center top;
-            }
-        }
-        @media (max-width: 2000px) {
-            .tournament-container {
-                transform: scale(0.8);
-            }
-        }
-        @media (max-width: 1600px) {
-            .tournament-container {
-                transform: scale(0.7);
-            }
-        }
-    </style>
 </head>
 <body>
-    <h1>Billiards Tournament</h1>
-    <div class="tournament-container">
-        <div class="round round-1-left"></div>
-        <div class="round round-2-left"></div>
-        <div class="round round-3-left"></div>
-        <div class="round round-4-left"></div>
-        <div class="round finals"></div>
-        <div class="round round-4-right"></div>
-        <div class="round round-3-right"></div>
-        <div class="round round-2-right"></div>
-        <div class="round round-1-right"></div>
+    <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+    <div class="background-overlay"></div>
+    <h1 class="tournament-title">Billiards Tournament</h1>
+    <div class="bracket-container">
+        <!-- Left side of bracket -->
+        <div class="bracket-side left">
+            <!-- Round 1 (First) -->
+            <div class="round round-1">
+                <div class="match" data-match-id="1">
+                    <div class="team team1" data-team-id="1">Team 1</div>
+                    <div class="team team2" data-team-id="2">Team 2</div>
+                </div>
+                <div class="match" data-match-id="2">
+                    <div class="team team1" data-team-id="3">Team 3</div>
+                    <div class="team team2" data-team-id="4">Team 4</div>
+                </div>
+                <div class="match" data-match-id="3">
+                    <div class="team team1" data-team-id="5">Team 5</div>
+                    <div class="team team2" data-team-id="6">Team 6</div>
+                </div>
+                <div class="match" data-match-id="4">
+                    <div class="team team1" data-team-id="7">Team 7</div>
+                    <div class="team team2" data-team-id="8">Team 8</div>
+                </div>
+                <div class="match" data-match-id="5">
+                    <div class="team team1" data-team-id="9">Team 9</div>
+                    <div class="team team2" data-team-id="10">Team 10</div>
+                </div>
+                <div class="match" data-match-id="6">
+                    <div class="team team1" data-team-id="11">Team 11</div>
+                    <div class="team team2" data-team-id="12">Team 12</div>
+                </div>
+                <div class="match" data-match-id="7">
+                    <div class="team team1" data-team-id="13">Team 13</div>
+                    <div class="team team2" data-team-id="14">Team 14</div>
+                </div>
+                <div class="match" data-match-id="8">
+                    <div class="team team1" data-team-id="15">Team 15</div>
+                    <div class="team team2" data-team-id="16">Team 16</div>
+                </div>
+            </div>
+
+            <!-- Round 2 -->
+            <div class="round round-2">
+                <div class="match" data-match-id="9">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="10">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="11">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="12">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Quarter Finals -->
+            <div class="round round-3">
+                <div class="match" data-match-id="13">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="14">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Semi Finals -->
+            <div class="round round-4">
+                <div class="match" data-match-id="15">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finals (Center) -->
+        <div class="round round-5">
+            <div class="match finals" data-match-id="16">
+                <div class="team team1"></div>
+                <div class="team team2"></div>
+            </div>
+            <div class="champion-slot">
+                <div class="champion"></div>
+            </div>
+        </div>
+
+        <!-- Right side of bracket -->
+        <div class="bracket-side right">
+            <!-- Semi Finals -->
+            <div class="round round-6">
+                <div class="match" data-match-id="17">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Quarter Finals -->
+            <div class="round round-7">
+                <div class="match" data-match-id="18">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="19">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Round 2 -->
+            <div class="round round-8">
+                <div class="match" data-match-id="20">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="21">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="22">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+                <div class="match" data-match-id="23">
+                    <div class="team team1"></div>
+                    <div class="team team2"></div>
+                </div>
+            </div>
+
+            <!-- Round 1 (Last) -->
+            <div class="round round-9">
+                <div class="match" data-match-id="24">
+                    <div class="team team1" data-team-id="17">Team 17</div>
+                    <div class="team team2" data-team-id="18">Team 18</div>
+                </div>
+                <div class="match" data-match-id="25">
+                    <div class="team team1" data-team-id="19">Team 19</div>
+                    <div class="team team2" data-team-id="20">Team 20</div>
+                </div>
+                <div class="match" data-match-id="26">
+                    <div class="team team1" data-team-id="21">Team 21</div>
+                    <div class="team team2" data-team-id="22">Team 22</div>
+                </div>
+                <div class="match" data-match-id="27">
+                    <div class="team team1" data-team-id="23">Team 23</div>
+                    <div class="team team2" data-team-id="24">Team 24</div>
+                </div>
+                <div class="match" data-match-id="28">
+                    <div class="team team1" data-team-id="25">Team 25</div>
+                    <div class="team team2" data-team-id="26">Team 26</div>
+                </div>
+                <div class="match" data-match-id="29">
+                    <div class="team team1" data-team-id="27">Team 27</div>
+                    <div class="team team2" data-team-id="28">Team 28</div>
+                </div>
+                <div class="match" data-match-id="30">
+                    <div class="team team1" data-team-id="29">Team 29</div>
+                    <div class="team team2" data-team-id="30">Team 30</div>
+                </div>
+                <div class="match" data-match-id="31">
+                    <div class="team team1" data-team-id="31">Team 31</div>
+                    <div class="team team2" data-team-id="32">Team 32</div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="controls" id="controls">
-        <div class="menu-title">Tournament Controls</div>
-        <button onclick="initializeBracket()">Reset Bracket</button>
-        <button onclick="randomizeWinners()">Randomize Winners</button>
-        <button onclick="toggleNameEdit()">Edit Names</button>
-        <button onclick="toggleFullscreen()">Enter Fullscreen</button>
-        <button onclick="undo()">Undo Last Action</button>
-        <button onclick="hideOverlay()">Close Menu</button>
+
+    <!-- Control Menu -->
+    <div class="control-menu" id="controlMenu">
+        <button id="randomizeBtn">Randomize Winner</button>
+        <button id="resetBtn">Reset Bracket</button>
+        <button id="undoBtn">Undo Last Action</button>
+        <button id="editNameBtn">Edit Team Name</button>
+        <button id="closeMenuBtn">Close Menu</button>
     </div>
-    <div class="overlay-hint">Press SPACE for menu</div>
 
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCMUNU2z5qhEeTzYoE7g3bPga8Be5_doYU",
-            authDomain: "cellardogbracket.firebaseapp.com",
-            databaseURL: "https://cellardogbracket-default-rtdb.firebaseio.com",
-            projectId: "cellardogbracket",
-            storageBucket: "cellardogbracket.firebasestorage.app",
-            messagingSenderId: "1055632970085",
-            appId: "1:1055632970085:web:d115dbd3480a368afe518c",
-            measurementId: "G-2C0FRQKKVN"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const bracketRef = database.ref('bracket');
-
-        let bracketData = {
-            rounds: {
-                round1Left: Array(8).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                round2Left: Array(4).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                round3Left: Array(2).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                round4Left: Array(1).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                finals: [{ team1: null, team2: null, winner: null }],
-                round4Right: Array(1).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                round3Right: Array(2).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                round2Right: Array(4).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                round1Right: Array(8).fill().map(() => ({ team1: null, team2: null, winner: null }))
-            }
-        };
-
-        let undoStack = [];
-        let isController = false;
-        let isNameEditMode = false;
-
-        function createInitialBracket() {
-            console.log("Creating initial bracket...");
-            const leftTeams = Array.from({length: 16}, (_, i) => `Player ${i + 1}`);
-            const rightTeams = Array.from({length: 16}, (_, i) => `Player ${i + 17}`);
-
-            bracketData.rounds.round1Left.forEach((match, i) => {
-                match.team1 = leftTeams[i * 2];
-                match.team2 = leftTeams[i * 2 + 1];
-            });
-
-            bracketData.rounds.round1Right.forEach((match, i) => {
-                match.team1 = rightTeams[i * 2];
-                match.team2 = rightTeams[i * 2 + 1];
-            });
-
-            console.log("Initial bracket data:", bracketData);
-            syncToFirebase();
-        }
-
-        function renderBracket() {
-            console.log("Rendering bracket with data:", bracketData);
-            const rounds = [
-                { element: '.round-1-left', data: bracketData.rounds.round1Left, side: 'left' },
-                { element: '.round-2-left', data: bracketData.rounds.round2Left, side: 'left' },
-                { element: '.round-3-left', data: bracketData.rounds.round3Left, side: 'left' },
-                { element: '.round-4-left', data: bracketData.rounds.round4Left, side: 'left' },
-                { element: '.finals', data: bracketData.rounds.finals, side: 'center' },
-                { element: '.round-4-right', data: bracketData.rounds.round4Right, side: 'right' },
-                { element: '.round-3-right', data: bracketData.rounds.round3Right, side: 'right' },
-                { element: '.round-2-right', data: bracketData.rounds.round2Right, side: 'right' },
-                { element: '.round-1-right', data: bracketData.rounds.round1Right, side: 'right' }
-            ];
-
-            rounds.forEach(round => {
-                const container = document.querySelector(round.element);
-                if (!container) {
-                    console.error(`Container not found for selector: ${round.element}`);
-                    return;
-                }
-                container.innerHTML = '';
-
-                round.data.forEach((match, matchIndex) => {
-                    const matchElement = createMatchElement(match, round.side, round.element, matchIndex);
-                    container.appendChild(matchElement);
-                });
-            });
-
-            // Add champion box if there's a winner
-            const finals = bracketData.rounds.finals[0];
-            if (finals && finals.winner) {
-                const container = document.querySelector('.finals');
-                if (container) {
-                    const championBox = document.createElement('div');
-                    championBox.className = 'champion-box';
-                    championBox.textContent = finals.winner;
-                    container.appendChild(championBox);
-                }
-            }
-        }
-
-        function createMatchElement(match, side, roundClass, matchIndex) {
-            const matchDiv = document.createElement('div');
-            matchDiv.className = 'match';
-
-            const team1Div = document.createElement('div');
-            team1Div.className = `team ${match.winner === match.team1 ? 'winner' : ''} ${match.winner === match.team2 ? 'loser' : ''}`;
-            team1Div.textContent = match.team1 || '';
-            if (isNameEditMode) {
-                team1Div.contentEditable = true;
-                team1Div.onblur = (e) => handleNameEdit(roundClass, matchIndex, 1, e.target.textContent);
-            } else if (isController) {
-                team1Div.onclick = () => selectWinner(roundClass, matchIndex, match.team1);
-            }
-
-            const team2Div = document.createElement('div');
-            team2Div.className = `team ${match.winner === match.team2 ? 'winner' : ''} ${match.winner === match.team1 ? 'loser' : ''}`;
-            team2Div.textContent = match.team2 || '';
-            if (isNameEditMode) {
-                team2Div.contentEditable = true;
-                team2Div.onblur = (e) => handleNameEdit(roundClass, matchIndex, 2, e.target.textContent);
-            } else if (isController) {
-                team2Div.onclick = () => selectWinner(roundClass, matchIndex, match.team2);
-            }
-
-            matchDiv.appendChild(team1Div);
-            matchDiv.appendChild(team2Div);
-
-            // Add connectors
-            if (side !== 'center') {
-                const horizontalConnector = document.createElement('div');
-                horizontalConnector.className = `connector connector-horizontal connector-horizontal-${side}`;
-                matchDiv.appendChild(horizontalConnector);
-
-                if (matchIndex % 2 === 0) {
-                    const verticalConnector = document.createElement('div');
-                    verticalConnector.className = `connector connector-vertical connector-vertical-${side}`;
-                    const verticalSpacing = getComputedStyle(document.documentElement).getPropertyValue('--vertical-spacing').trim();
-                    const matchHeight = getComputedStyle(document.documentElement).getPropertyValue('--match-height').trim();
-                    const height = `calc(${verticalSpacing} * 2 + ${matchHeight})`;
-                    verticalConnector.style.height = height;
-                    verticalConnector.style.top = `calc(${matchHeight} / 2)`;
-                    matchDiv.appendChild(verticalConnector);
-                }
-            }
-
-            return matchDiv;
-        }
-
-        function selectWinner(roundClass, matchIndex, team) {
-            if (!isController || !team) return;
-
-            saveState();
-            const roundName = roundClass.replace('.round-', '').replace('-', '');
-            const match = bracketData.rounds[roundName][matchIndex];
-            match.winner = team;
-
-            // Update next round
-            const nextRound = getNextRound(roundName);
-            if (nextRound) {
-                const nextMatchIndex = Math.floor(matchIndex / 2);
-                const nextMatch = bracketData.rounds[nextRound][nextMatchIndex];
-                if (matchIndex % 2 === 0) {
-                    nextMatch.team1 = team;
-                } else {
-                    nextMatch.team2 = team;
-                }
-            }
-
-            syncToFirebase();
-            renderBracket();
-        }
-
-        function getNextRound(currentRound) {
-            const roundOrder = {
-                'round1Left': 'round2Left',
-                'round2Left': 'round3Left',
-                'round3Left': 'round4Left',
-                'round4Left': 'finals',
-                'round1Right': 'round2Right',
-                'round2Right': 'round3Right',
-                'round3Right': 'round4Right',
-                'round4Right': 'finals'
-            };
-            return roundOrder[currentRound];
-        }
-
-        function handleNameEdit(roundClass, matchIndex, teamNumber, newName) {
-            if (!isController) return;
-
-            saveState();
-            const roundName = roundClass.replace('.round-', '').replace('-', '');
-            const match = bracketData.rounds[roundName][matchIndex];
-            
-            if (teamNumber === 1) {
-                match.team1 = newName.trim() || null;
-                if (match.winner === match.team1) {
-                    match.winner = null;
-                    clearSubsequentRounds(roundName, matchIndex);
-                }
-            } else {
-                match.team2 = newName.trim() || null;
-                if (match.winner === match.team2) {
-                    match.winner = null;
-                    clearSubsequentRounds(roundName, matchIndex);
-                }
-            }
-
-            syncToFirebase();
-        }
-
-        function clearSubsequentRounds(roundName, matchIndex) {
-            const nextRound = getNextRound(roundName);
-            if (!nextRound) return;
-
-            const nextMatchIndex = Math.floor(matchIndex / 2);
-            const nextMatch = bracketData.rounds[nextRound][nextMatchIndex];
-            if (matchIndex % 2 === 0) {
-                nextMatch.team1 = null;
-            } else {
-                nextMatch.team2 = null;
-            }
-
-            if (nextMatch.winner === null) {
-                clearSubsequentRounds(nextRound, nextMatchIndex);
-            }
-        }
-
-        function randomizeWinners() {
-            if (!isController) return;
-            saveState();
-
-            const processRound = (roundName) => {
-                bracketData.rounds[roundName].forEach((match, index) => {
-                    if (match.team1 && match.team2) {
-                        const winner = Math.random() < 0.5 ? match.team1 : match.team2;
-                        selectWinner(`.round-${roundName.replace('round', '')}`, index, winner);
-                    }
-                });
-            };
-
-            const roundOrder = [
-                'round1Left', 'round1Right',
-                'round2Left', 'round2Right',
-                'round3Left', 'round3Right',
-                'round4Left', 'round4Right',
-                'finals'
-            ];
-
-            roundOrder.forEach(processRound);
-            hideOverlay();
-        }
-
-        function saveState() {
-            undoStack.push(JSON.stringify(bracketData));
-        }
-
-        function undo() {
-            if (!isController || undoStack.length === 0) return;
-            bracketData = JSON.parse(undoStack.pop());
-            syncToFirebase();
-            renderBracket();
-            hideOverlay();
-        }
-
-        function toggleNameEdit() {
-            if (!isController) return;
-            isNameEditMode = !isNameEditMode;
-            document.body.classList.toggle('name-edit-mode', isNameEditMode);
-            renderBracket();
-            hideOverlay();
-        }
-
-        function syncToFirebase() {
-            if (isController) {
-                console.log("Syncing to Firebase:", bracketData);
-                bracketRef.set(bracketData)
-                    .then(() => console.log("Data synced successfully"))
-                    .catch(error => console.error("Error syncing data:", error));
-            }
-        }
-
-        function initializeBracket() {
-            if (!isController) return;
-            bracketData = {
-                rounds: {
-                    round1Left: Array(8).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                    round2Left: Array(4).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                    round3Left: Array(2).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                    round4Left: Array(1).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                    finals: [{ team1: null, team2: null, winner: null }],
-                    round4Right: Array(1).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                    round3Right: Array(2).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                    round2Right: Array(4).fill().map(() => ({ team1: null, team2: null, winner: null })),
-                    round1Right: Array(8).fill().map(() => ({ team1: null, team2: null, winner: null }))
-                }
-            };
-            createInitialBracket();
-            renderBracket();
-            hideOverlay();
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                document.exitFullscreen();
-            }
-            hideOverlay();
-        }
-
-        function showOverlay() {
-            if (isController) {
-                document.getElementById('controls').classList.add('visible');
-            }
-        }
-
-        function hideOverlay() {
-            document.getElementById('controls').classList.remove('visible');
-        }
-
-        function checkControllerMode() {
-            const urlParams = new URLSearchParams(window.location.search);
-            isController = urlParams.get('mode') === 'controller';
-            
-            const overlayHint = document.querySelector('.overlay-hint');
-            if (overlayHint) {
-                overlayHint.style.display = isController ? 'block' : 'none';
-            }
-        }
-
-        // Event listeners
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                showOverlay();
-            } else if (e.code === 'Escape') {
-                if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                }
-                hideOverlay();
-            }
-        });
-
-        document.addEventListener('fullscreenchange', () => {
-            const fullscreenBtn = document.querySelector('button[onclick="toggleFullscreen()"]');
-            if (fullscreenBtn) {
-                fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Enter Fullscreen';
-            }
-        });
-
-        // Initialize
-        window.onload = () => {
-            console.log("Window loaded, checking controller mode...");
-            checkControllerMode();
-            
-            bracketRef.once('value')
-                .then((snapshot) => {
-                    console.log("Firebase data received:", snapshot.val());
-                    const data = snapshot.val();
-                    if (data && data.rounds) {
-                        console.log("Using existing data");
-                        bracketData = data;
-                    } else if (isController) {
-                        console.log("Creating new bracket");
-                        createInitialBracket();
-                    }
-                    renderBracket();
-                })
-                .catch(error => {
-                    console.error("Error loading bracket data:", error);
-                    if (isController) {
-                        createInitialBracket();
-                    }
-                });
-
-            // Listen for real-time updates
-            bracketRef.on('value', (snapshot) => {
-                console.log("Real-time update received:", snapshot.val());
-                const data = snapshot.val();
-                if (data && data.rounds) {
-                    bracketData = data;
-                    renderBracket();
-                }
-            }, (error) => {
-                console.error("Error in real-time sync:", error);
-            });
-
-            hideOverlay();
-        };
-    </script>
+    <script src="script.js"></script>
 </body>
 </html> 
