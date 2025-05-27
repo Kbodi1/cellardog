@@ -179,12 +179,23 @@ class BracketManager {
         const state = {};
         document.querySelectorAll('.match').forEach(match => {
             const matchId = match.dataset.matchId;
-            state[matchId] = {
-                teams: Array.from(match.querySelectorAll('.team')).map(team => ({
-                    text: team.textContent,
-                    teamId: team.dataset.teamId,
+            const teams = Array.from(match.querySelectorAll('.team')).map(team => {
+                // Create a clean team object with no undefined values
+                const teamData = {
+                    text: team.textContent || '',
                     classes: Array.from(team.classList)
-                }))
+                };
+                
+                // Only add teamId if it exists
+                if (team.dataset.teamId) {
+                    teamData.teamId = team.dataset.teamId;
+                }
+                
+                return teamData;
+            });
+
+            state[matchId] = {
+                teams: teams
             };
         });
 
@@ -193,7 +204,12 @@ class BracketManager {
             state.champion = champion.textContent;
         }
 
-        this.bracketRef.set(state)
+        // Clean up any undefined or null values
+        const cleanState = JSON.parse(JSON.stringify(state));
+
+        console.log('Broadcasting state:', cleanState);
+        
+        this.bracketRef.set(cleanState)
             .then(() => console.log('State broadcast successful'))
             .catch(error => console.error('State broadcast failed:', error));
     }
@@ -235,7 +251,9 @@ class BracketManager {
             }
 
             targetTeam.textContent = clickedTeam.textContent;
-            targetTeam.dataset.teamId = clickedTeam.dataset.teamId;
+            if (clickedTeam.dataset.teamId) {
+                targetTeam.dataset.teamId = clickedTeam.dataset.teamId;
+            }
             this.updateTextSize(targetTeam);
             
             nextMatch.querySelectorAll('.team').forEach(team => {
