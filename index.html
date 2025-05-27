@@ -120,6 +120,7 @@
             justify-content: space-around;
             margin: 0 5px;
             position: relative;
+            gap: 20px;
         }
         .match {
             display: flex;
@@ -130,6 +131,7 @@
             border: 2px solid white;
             border-radius: 4px;
             overflow: hidden;
+            width: 160px;
         }
         .team {
             background-color: #000;
@@ -559,6 +561,21 @@
             initializeBracket();
             hideOverlay();
         };
+
+        function initializeBracket() {
+            if (isController) {
+                createInitialRounds();
+            }
+            bracketRef.once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    bracketData = data;
+                } else if (isController) {
+                    createInitialRounds();
+                }
+                renderBracket();
+            });
+        }
     </script>
 </body>
 </html> 
