@@ -14,24 +14,31 @@ class BracketManager {
             console.log('Initializing Firebase...');
             // Initialize Firebase
             firebase.initializeApp(firebaseConfig);
-            
             console.log('Firebase initialized successfully');
-            
-            this.database = firebase.database();
-            console.log('Database reference created');
             
             // Check if this is the controller
             const urlParams = new URLSearchParams(window.location.search);
             this.isController = urlParams.get('controller') === 'true';
             console.log('Controller mode:', this.isController);
             
-            // Set up real-time sync
+            // Initialize database and references
+            this.database = firebase.database();
             this.bracketRef = this.database.ref('bracket');
-            console.log('Bracket reference created');
+            console.log('Database references created');
+
+            // Set up real-time sync
+            this.bracketRef.on('value', (snapshot) => {
+                console.log('Received database update:', snapshot.val());
+                const state = snapshot.val();
+                if (state && !state._status) { // Ignore status updates
+                    this.applyState(state);
+                }
+            }, (error) => {
+                console.error('Database error:', error);
+            });
 
             // Monitor connection state
-            const connectedRef = firebase.database().ref('.info/connected');
-            connectedRef.on('value', (snap) => {
+            this.database.ref('.info/connected').on('value', (snap) => {
                 if (snap.val() === true) {
                     console.log('Connected to Firebase');
                     
@@ -53,17 +60,6 @@ class BracketManager {
                 } else {
                     console.log('Disconnected from Firebase');
                 }
-            });
-            
-            // Listen for updates
-            this.bracketRef.on('value', (snapshot) => {
-                console.log('Received database update:', snapshot.val());
-                const state = snapshot.val();
-                if (state && !state._status) { // Ignore status updates
-                    this.applyState(state);
-                }
-            }, (error) => {
-                console.error('Database error:', error);
             });
 
             // Show/hide control menu based on controller status
