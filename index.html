@@ -292,24 +292,7 @@
         };
         let undoStack = [];
         let isController = false;
-
-        // Function to sync data with Firebase
-        function syncToFirebase() {
-            if (isController) {
-                bracketRef.set(bracketData);
-            }
-        }
-
-        // Listen for changes in Firebase
-        bracketRef.on('value', (snapshot) => {
-            if (!isController) {
-                const data = snapshot.val();
-                if (data) {
-                    bracketData = data;
-                    renderBracket();
-                }
-            }
-        });
+        let isNameEditMode = false;
 
         function createInitialRounds() {
             const participants = Array.from({length: 32}, (_, i) => `Player ${i + 1}`);
@@ -462,7 +445,7 @@
         }
 
         function undo() {
-            if (undoStack.length > 0) {
+            if (undoStack.length > 0 && isController) {
                 const previousState = JSON.parse(undoStack.pop());
                 bracketData.left = previousState.left;
                 bracketData.right = previousState.right;
@@ -472,8 +455,6 @@
             }
             hideOverlay();
         }
-
-        let isNameEditMode = false;
 
         function toggleNameEdit() {
             if (!isController) return;
@@ -499,28 +480,48 @@
         function randomizeWinners() {
             if (!isController) return;
             saveState();
-            bracketData.left.forEach((round, roundIndex) => {
-                round.forEach((match, matchIndex) => {
-                    if (match.team1 && match.team2) {
-                        const winner = Math.random() < 0.5 ? match.team1 : match.team2;
-                        selectWinner('left', roundIndex, matchIndex, winner);
-                    }
-                });
-            });
 
-            bracketData.right.forEach((round, roundIndex) => {
-                round.forEach((match, matchIndex) => {
+            const processRound = (side, roundIndex) => {
+                bracketData[side][roundIndex].forEach((match, matchIndex) => {
                     if (match.team1 && match.team2) {
                         const winner = Math.random() < 0.5 ? match.team1 : match.team2;
-                        selectWinner('right', roundIndex, matchIndex, winner);
+                        selectWinner(side, roundIndex, matchIndex, winner);
                     }
                 });
-            });
+            };
+
+            for (let i = 0; i < bracketData.left.length; i++) {
+                processRound('left', i);
+                processRound('right', i);
+            }
 
             if (bracketData.final.team1 && bracketData.final.team2) {
                 const winner = Math.random() < 0.5 ? bracketData.final.team1 : bracketData.final.team2;
                 selectFinalWinner(winner);
             }
+
+            hideOverlay();
+        }
+
+        function syncToFirebase() {
+            if (isController) {
+                bracketRef.set(bracketData);
+            }
+        }
+
+        function initializeBracket() {
+            if (isController) {
+                createInitialRounds();
+            }
+            bracketRef.once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    bracketData = data;
+                } else if (isController) {
+                    createInitialRounds();
+                }
+                renderBracket();
+            });
         }
 
         function toggleFullscreen() {
@@ -547,9 +548,10 @@
             const urlParams = new URLSearchParams(window.location.search);
             isController = urlParams.get('mode') === 'controller';
             
-            // Hide controls if not in controller mode
             if (!isController) {
                 document.querySelector('.overlay-hint').style.display = 'none';
+            } else {
+                document.querySelector('.overlay-hint').style.display = 'block';
             }
         }
 
@@ -568,7 +570,20 @@
 
         document.addEventListener('fullscreenchange', () => {
             const fullscreenBtn = document.querySelector('button[onclick="toggleFullscreen()"]');
-            fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Enter Fullscreen';
+            if (fullscreenBtn) {
+                fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Enter Fullscreen';
+            }
+        });
+
+        // Listen for changes in Firebase
+        bracketRef.on('value', (snapshot) => {
+            if (!isController) {
+                const data = snapshot.val();
+                if (data) {
+                    bracketData = data;
+                    renderBracket();
+                }
+            }
         });
 
         // Initialize
@@ -577,21 +592,6 @@
             initializeBracket();
             hideOverlay();
         };
-
-        function initializeBracket() {
-            if (isController) {
-                createInitialRounds();
-            }
-            bracketRef.once('value').then((snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    bracketData = data;
-                } else if (isController) {
-                    createInitialRounds();
-                }
-                renderBracket();
-            });
-        }
     </script>
 </body>
 </html> 
