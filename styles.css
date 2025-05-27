@@ -18,25 +18,26 @@ body {
     overflow-y: auto;
 }
 
-/* IE-compatible background */
+/* Background image with Edge compatibility */
 body::before {
     content: '';
     position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 900px;
-    height: 900px;
-    margin-top: -450px; /* half of height */
-    margin-left: -450px; /* half of width */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: url('cellardog.png') center center no-repeat;
     background-size: contain;
     opacity: 0.5;
     z-index: -2;
     pointer-events: none;
+    -webkit-filter: brightness(0.7) contrast(1.4);
     filter: brightness(0.7) contrast(1.4);
-    /* IE specific styles */
+    /* Edge-specific positioning */
     -ms-transform: none;
     transform: none;
+    /* Edge-specific opacity */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
 }
 
 .background-overlay {
