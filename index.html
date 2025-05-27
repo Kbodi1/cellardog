@@ -120,7 +120,6 @@
             justify-content: space-around;
             margin: 0 5px;
             position: relative;
-            gap: 20px;
         }
         .match {
             display: flex;
@@ -131,7 +130,6 @@
             border: 2px solid white;
             border-radius: 4px;
             overflow: hidden;
-            width: 160px;
         }
         .team {
             background-color: #000;
@@ -363,21 +361,39 @@
                 const roundDiv = document.createElement('div');
                 roundDiv.className = 'round';
                 
-                roundDiv.innerHTML = round.map((match, matchIndex) => {
+                round.forEach((match, matchIndex) => {
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = 'match';
                     const shouldShowLoser = match.team1 && match.team2 && match.winner;
-                    return `
-                        <div class="match">
-                            <div class="team ${match.winner === match.team1 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team2 ? 'loser' : ''}" 
-                                 ${isNameEditMode ? 'contenteditable="true"' : ''}
-                                 ${isNameEditMode ? `onblur="handleTeamNameUpdate('${side}', ${roundIndex}, ${matchIndex}, 1, this)"` : `onclick="selectWinner('${side}', ${roundIndex}, ${matchIndex}, '${match.team1}')"`}
-                                 >${match.team1 || ''}</div>
-                            <div class="team ${match.winner === match.team2 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team1 ? 'loser' : ''}"
-                                 ${isNameEditMode ? 'contenteditable="true"' : ''}
-                                 ${isNameEditMode ? `onblur="handleTeamNameUpdate('${side}', ${roundIndex}, ${matchIndex}, 2, this)"` : `onclick="selectWinner('${side}', ${roundIndex}, ${matchIndex}, '${match.team2}')"`}
-                                 >${match.team2 || ''}</div>
-                        </div>
+
+                    matchDiv.innerHTML = `
+                        <div class="team ${match.winner === match.team1 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team2 ? 'loser' : ''}" 
+                             ${isNameEditMode ? 'contenteditable="true"' : ''}
+                             ${isNameEditMode ? `onblur="handleTeamNameUpdate('${side}', ${roundIndex}, ${matchIndex}, 1, this)"` : `onclick="selectWinner('${side}', ${roundIndex}, ${matchIndex}, '${match.team1}')"`}
+                             >${match.team1 || ''}</div>
+                        <div class="team ${match.winner === match.team2 ? 'winner' : ''} ${shouldShowLoser && match.winner === match.team1 ? 'loser' : ''}"
+                             ${isNameEditMode ? 'contenteditable="true"' : ''}
+                             ${isNameEditMode ? `onblur="handleTeamNameUpdate('${side}', ${roundIndex}, ${matchIndex}, 2, this)"` : `onclick="selectWinner('${side}', ${roundIndex}, ${matchIndex}, '${match.team2}')"`}
+                             >${match.team2 || ''}</div>
                     `;
-                }).join('');
+
+                    // Add connectors
+                    if (roundIndex < rounds.length - 1) {
+                        if (side === 'left') {
+                            matchDiv.innerHTML += '<div class="connector"></div>';
+                            if (matchIndex % 2 === 0) {
+                                matchDiv.innerHTML += '<div class="vertical-connector"></div>';
+                            }
+                        } else {
+                            matchDiv.innerHTML += '<div class="connector-right"></div>';
+                            if (matchIndex % 2 === 0) {
+                                matchDiv.innerHTML += '<div class="vertical-connector"></div>';
+                            }
+                        }
+                    }
+
+                    roundDiv.appendChild(matchDiv);
+                });
                 
                 container.appendChild(roundDiv);
             });
