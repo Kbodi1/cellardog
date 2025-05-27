@@ -12,11 +12,20 @@ class BracketManager {
     setupFirebase() {
         try {
             console.log('Initializing Firebase...');
-            // Initialize Firebase
-            firebase.initializeApp(firebaseConfig);
+            // Initialize Firebase with WebSocket config
+            firebase.initializeApp({
+                ...firebaseConfig,
+                databaseURL: firebaseConfig.databaseURL.replace('https://', 'wss://'),
+                persistenceEnabled: false,
+                forceWebSockets: true
+            });
+            
             console.log('Firebase initialized successfully');
             
             this.database = firebase.database();
+            // Force WebSocket protocol
+            this.database.ref('.info/connected').set(firebase.database.ServerValue.TIMESTAMP);
+            
             console.log('Database reference created');
             
             // Check if this is the controller
@@ -32,7 +41,9 @@ class BracketManager {
             const connectedRef = this.database.ref(".info/connected");
             connectedRef.on("value", (snap) => {
                 if (snap.val() === true) {
-                    console.log("Connected to Firebase");
+                    console.log("Connected to Firebase using WebSocket");
+                    // Set online presence
+                    this.bracketRef.child('_connections').push().onDisconnect().remove();
                 } else {
                     console.log("Disconnected from Firebase");
                 }
@@ -41,7 +52,7 @@ class BracketManager {
             this.bracketRef.on('value', (snapshot) => {
                 console.log('Received database update:', snapshot.val());
                 const state = snapshot.val();
-                if (state) {
+                if (state && !state._connections) { // Ignore connection updates
                     this.applyState(state);
                 }
             }, (error) => {

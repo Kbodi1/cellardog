@@ -7,5 +7,7 @@ const firebaseConfig = {
     projectId: "cellardog",
     storageBucket: "cellardog.appspot.com",
     messagingSenderId: "713540418332",
-    appId: "1:713540418332:web:24d039b8009c587c7c58d9"
+    appId: "1:713540418332:web:24d039b8009c587c7c58d9",
+    // Force WebSocket transport
+    webSocketOnly: true
 }; 
