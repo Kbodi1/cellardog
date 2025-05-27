@@ -1,24 +1,23 @@
-// Check for Internet Explorer and handle background image
-function handleIEBackground() {
-    const isIE = /*@cc_on!@*/false || !!document.documentMode;
-    if (isIE) {
-        const fallbackBg = document.getElementById('fallbackBg');
-        if (fallbackBg) {
-            fallbackBg.style.display = 'block';
-            // Add IE-specific filter for opacity
-            fallbackBg.style.filter = 'alpha(opacity=50)';
-            // Add brightness and contrast adjustments
-            fallbackBg.style.filter = 'brightness(70%) contrast(140%)';
-        }
-    }
-}
+// Remove the IE background handler
+// function handleIEBackground() {
+//     const isIE = /*@cc_on!@*/false || !!document.documentMode;
+//     if (isIE) {
+//         const fallbackBg = document.getElementById('fallbackBg');
+//         if (fallbackBg) {
+//             fallbackBg.style.display = 'block';
+//             // Add IE-specific filter for opacity
+//             fallbackBg.style.filter = 'alpha(opacity=50)';
+//             // Add brightness and contrast adjustments
+//             fallbackBg.style.filter = 'brightness(70%) contrast(140%)';
+//         }
+//     }
+// }
 
 class BracketManager {
     constructor() {
         this.history = [];
         this.controlMenu = document.getElementById('controlMenu');
         this.isEditingNames = false;
-        handleIEBackground(); // Call the IE handler
         this.setupFirebase();
         this.setupEventListeners();
         this.setupFullscreenButton();
