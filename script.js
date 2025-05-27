@@ -12,13 +12,8 @@ class BracketManager {
     setupFirebase() {
         try {
             console.log('Initializing Firebase...');
-            // Initialize Firebase with WebSocket config
-            firebase.initializeApp({
-                ...firebaseConfig,
-                databaseURL: firebaseConfig.databaseURL,
-                persistenceEnabled: false,
-                forceWebSockets: true
-            });
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
             
             console.log('Firebase initialized successfully');
             
@@ -35,19 +30,28 @@ class BracketManager {
             console.log('Bracket reference created');
 
             // Monitor connection state
-            const connectedRef = this.database.ref(".info/connected");
-            connectedRef.on("value", (snap) => {
+            const connectedRef = firebase.database().ref('.info/connected');
+            connectedRef.on('value', (snap) => {
                 if (snap.val() === true) {
-                    console.log("Connected to Firebase using WebSocket");
-                    // Set online presence
+                    console.log('Connected to Firebase');
+                    
+                    // Set up presence system for controller
                     if (this.isController) {
-                        this.bracketRef.child('_status').set({
+                        const statusRef = this.bracketRef.child('_status');
+                        
+                        // When we disconnect, remove the status
+                        statusRef.onDisconnect().remove();
+                        
+                        // Set the current status
+                        statusRef.set({
                             lastActive: firebase.database.ServerValue.TIMESTAMP,
                             isController: true
-                        }).catch(console.error);
+                        }).catch(error => {
+                            console.error('Error setting status:', error);
+                        });
                     }
                 } else {
-                    console.log("Disconnected from Firebase");
+                    console.log('Disconnected from Firebase');
                 }
             });
             
