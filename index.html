@@ -17,9 +17,10 @@
             color: white;
             position: relative;
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow-x: auto;
             display: flex;
             flex-direction: column;
+            align-items: center;
         }
         body::before {
             content: '';
@@ -88,16 +89,16 @@
             z-index: 99;
         }
         .tournament-container {
-            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
             position: relative;
             z-index: 1;
-            margin: 0 auto;
-            max-width: 2000px;
+            width: 100%;
+            max-width: 2400px;
             gap: 40px;
+            margin: 0 auto;
             margin-bottom: 80px;
         }
         .bracket-half {
@@ -105,7 +106,7 @@
             flex: 1;
             justify-content: center;
             gap: 40px;
-            max-width: 900px;
+            max-width: 1100px;
         }
         .bracket-left {
             justify-content: flex-end;
@@ -120,7 +121,7 @@
             justify-content: space-around;
             margin: 0 5px;
             position: relative;
-            min-height: 400px;
+            min-height: 500px;
         }
         .match {
             display: flex;
@@ -131,26 +132,17 @@
             border: 2px solid white;
             border-radius: 4px;
             overflow: hidden;
-            width: 160px;
+            width: 180px;
         }
         .team {
             padding: 12px 8px;
             min-height: 24px;
-            font-size: 14px;
+            font-size: 16px;
             border-bottom: 1px solid white;
-        }
-        .team[contenteditable="true"] {
-            cursor: text;
-            outline: 1px solid #666;
-            user-select: text;
-        }
-        .team[contenteditable="true"]:focus {
-            outline: 2px solid white;
-            background-color: #1a1a1a;
-        }
-        .team[contenteditable="true"]:empty:before {
-            content: '---';
-            color: #666;
+            background-color: #000;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         .team:last-child {
             border-bottom: none;
@@ -160,9 +152,10 @@
         }
         .team.winner {
             background-color: #1a1a1a;
+            font-weight: bold;
         }
-        .match .team.loser {
-            color: #ff4444;
+        .team.loser {
+            color: #666;
             text-decoration: line-through;
         }
         .connector {
@@ -193,6 +186,25 @@
             border-left: 2px solid white;
             border-right: none;
         }
+        .final-match {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 40px;
+            min-width: 180px;
+            align-self: center;
+        }
+        .champion-box {
+            background-color: #000;
+            border: 2px solid gold;
+            padding: 15px;
+            margin-top: 20px;
+            width: 180px;
+            text-align: center;
+            border-radius: 4px;
+            color: gold;
+            font-size: 20px;
+        }
         h1 {
             text-align: center;
             color: white;
@@ -218,26 +230,44 @@
             background-color: #333;
             transform: scale(1.05);
         }
-        .final-match {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0 40px;
-            min-width: 160px;
+        .team[contenteditable="true"] {
+            cursor: text;
+            outline: 1px solid #666;
+            user-select: text;
         }
-        .final-match .match {
-            margin-bottom: 20px;
+        .team[contenteditable="true"]:focus {
+            outline: 2px solid white;
+            background-color: #1a1a1a;
         }
-        .champion-box {
-            background-color: #000;
-            border: 2px solid gold;
-            padding: 12px;
-            margin-top: 20px;
-            width: 160px;
-            text-align: center;
-            border-radius: 4px;
-            color: gold;
-            font-size: 18px;
+        .team[contenteditable="true"]:empty:before {
+            content: '---';
+            color: #666;
+        }
+        .team:hover {
+            background-color: #333;
+        }
+        .team.winner {
+            background-color: #1a1a1a;
+        }
+        .match .team.loser {
+            color: #ff4444;
+            text-decoration: line-through;
+        }
+        @media (max-width: 2000px) {
+            .tournament-container {
+                transform: scale(0.9);
+                transform-origin: center center;
+            }
+        }
+        @media (max-width: 1600px) {
+            .tournament-container {
+                transform: scale(0.8);
+            }
+        }
+        @media (max-width: 1200px) {
+            .tournament-container {
+                transform: scale(0.7);
+            }
         }
     </style>
 </head>
@@ -526,15 +556,19 @@
         }
 
         function initializeBracket() {
-            bracketRef.once('value').then((snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    bracketData = data;
-                } else if (isController) {
-                    createInitialRounds();
-                }
-                renderBracket();
-            });
+            bracketRef.once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        bracketData = data;
+                        renderBracket();
+                    } else if (isController) {
+                        createInitialRounds();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading bracket data:", error);
+                });
         }
 
         function toggleFullscreen() {
@@ -588,13 +622,13 @@
 
         // Listen for changes in Firebase
         bracketRef.on('value', (snapshot) => {
-            if (!isController) {
-                const data = snapshot.val();
-                if (data) {
-                    bracketData = data;
-                    renderBracket();
-                }
+            const data = snapshot.val();
+            if (data) {
+                bracketData = data;
+                renderBracket();
             }
+        }, (error) => {
+            console.error("Error syncing bracket data:", error);
         });
 
         // Initialize
@@ -602,6 +636,11 @@
             checkControllerMode();
             initializeBracket();
             hideOverlay();
+            
+            // Force a re-render after a short delay to ensure everything is displayed
+            setTimeout(() => {
+                renderBracket();
+            }, 1000);
         };
     </script>
 </body>
