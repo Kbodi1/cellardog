@@ -396,11 +396,14 @@ body {
     align-items: center;
     gap: 10px;
     position: relative;
+    justify-content: center;
+    height: 100%;
 }
 
 .round-5 .finals {
     position: relative;
-    top: -20px;
+    top: -60px;
+    margin: 0 auto;
 }
 
 .champion-slot {
@@ -409,7 +412,7 @@ body {
     margin-top: 0;
     display: none;
     position: relative;
-    top: -100px;
+    top: -140px;
 }
 
 .champion-slot.visible {
@@ -733,7 +736,7 @@ body:before {
 /* Adjust fullscreen positioning */
 :fullscreen .champion-slot {
     margin-top: 0;
-    top: -20vh;
+    top: -30vh;
     transform: scale(1.2);
 }
 
@@ -748,5 +751,5 @@ body:before {
 }
 
 :fullscreen .round-5 .finals {
-    top: -5vh;
+    top: -15vh;
 } 
