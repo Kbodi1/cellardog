@@ -395,15 +395,6 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    position: relative;
-    justify-content: center;
-    height: 100%;
-}
-
-.round-5 .finals {
-    position: relative;
-    top: -60px;
-    margin: 0 auto;
 }
 
 .champion-slot {
@@ -412,7 +403,7 @@ body {
     margin-top: 0;
     display: none;
     position: relative;
-    top: -140px;
+    top: -80px;
 }
 
 .champion-slot.visible {
@@ -736,7 +727,7 @@ body:before {
 /* Adjust fullscreen positioning */
 :fullscreen .champion-slot {
     margin-top: 0;
-    top: -30vh;
+    top: -15vh;
     transform: scale(1.2);
 }
 
@@ -747,9 +738,9 @@ body:before {
 /* Adjust the finals match position */
 .round-5 .finals {
     position: relative;
-    top: -20px;
+    top: 20px;
 }
 
 :fullscreen .round-5 .finals {
-    top: -15vh;
+    top: 5vh;
 } 
