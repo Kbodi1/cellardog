@@ -9,9 +9,6 @@ class BracketManager {
         this.setupEventListeners();
         this.setupFullscreenButton();
         this.initializeTextSizing();
-        
-        // Load saved state when controller page loads
-        this.loadSavedState();
     }
 
     setupFirebase() {
@@ -61,6 +58,9 @@ class BracketManager {
                         }).catch(error => {
                             console.error('Error setting status:', error);
                         });
+                        
+                        // Load saved state after Firebase is connected
+                        this.loadSavedState();
                     }
                 } else {
                     console.log('Disconnected from Firebase');
@@ -88,26 +88,46 @@ class BracketManager {
     loadSavedState() {
         if (!this.isController) return;
 
-        // Wait a moment for Firebase to be ready, then load state
-        setTimeout(() => {
-            this.bracketRef.once('value')
-                .then(snapshot => {
-                    const savedState = snapshot.val();
-                    if (savedState && !savedState._status) {
-                        console.log('Loading saved state from Firebase:', savedState);
-                        this.applyState(savedState);
-                        
-                        // Also restore the history for undo functionality
-                        this.history = [];
-                        this.saveState(); // Save current state as first history entry
-                    } else {
-                        console.log('No saved state found in Firebase.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading saved state from Firebase:', error);
-                });
-        }, 1000); // Wait 1 second for Firebase to be fully initialized
+        console.log('Loading saved state...');
+        
+        // Use a one-time listener to get the current state
+        this.bracketRef.once('value')
+            .then(snapshot => {
+                const savedState = snapshot.val();
+                console.log('Retrieved state from Firebase:', savedState);
+                
+                if (savedState && !savedState._status) {
+                    console.log('Applying saved state...');
+                    
+                    // Temporarily disable the real-time listener to avoid conflicts
+                    this.bracketRef.off('value');
+                    
+                    // Apply the saved state
+                    this.applyState(savedState);
+                    
+                    // Re-enable the real-time listener
+                    this.bracketRef.on('value', (snapshot) => {
+                        console.log('Received database update:', snapshot.val());
+                        const state = snapshot.val();
+                        if (state && !state._status) { // Ignore status updates
+                            this.applyState(state);
+                        }
+                    }, (error) => {
+                        console.error('Database error:', error);
+                    });
+                    
+                    // Initialize history for undo functionality
+                    this.history = [];
+                    this.saveState(); // Save current state as first history entry
+                    
+                    console.log('Saved state loaded successfully');
+                } else {
+                    console.log('No saved state found in Firebase.');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading saved state from Firebase:', error);
+            });
     }
 
     initializeTextSizing() {
@@ -192,9 +212,12 @@ class BracketManager {
     }
 
     applyState(state) {
+        console.log('applyState called with:', state);
+        
         document.querySelectorAll('.match').forEach(match => {
             const matchId = match.dataset.matchId;
             if (state[matchId]) {
+                console.log(`Applying state for match ${matchId}:`, state[matchId]);
                 const teams = match.querySelectorAll('.team');
                 teams.forEach((team, index) => {
                     const teamState = state[matchId].teams[index];
@@ -217,6 +240,7 @@ class BracketManager {
 
         // Handle champion display - only show if there's actually a champion
         if (state.champion && state.champion.trim() !== '') {
+            console.log('Applying champion:', state.champion);
             this.displayChampion(state.champion);
         } else {
             // Hide champion display if no champion or empty champion
