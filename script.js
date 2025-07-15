@@ -180,6 +180,10 @@ class BracketManager {
         document.getElementById('undoBtn').addEventListener('click', () => this.undoLastAction());
         document.getElementById('editNameBtn').addEventListener('click', () => this.editTeamName());
         document.getElementById('closeMenuBtn').addEventListener('click', () => this.toggleControlMenu());
+        // Batch enter team names
+        document.getElementById('batchNamesBtn').addEventListener('click', () => this.showBatchNamesModal());
+        document.getElementById('batchNamesCancel').addEventListener('click', () => this.hideBatchNamesModal());
+        document.getElementById('batchNamesSubmit').addEventListener('click', () => this.handleBatchNamesSubmit());
     }
 
     setupFullscreenButton() {
@@ -621,6 +625,33 @@ class BracketManager {
         if (this.isController) {
             this.broadcastState();
         }
+    }
+
+    showBatchNamesModal() {
+        document.getElementById('batchNamesModal').style.display = 'flex';
+    }
+    hideBatchNamesModal() {
+        document.getElementById('batchNamesModal').style.display = 'none';
+    }
+    handleBatchNamesSubmit() {
+        const textarea = document.getElementById('batchNamesTextarea');
+        const names = textarea.value.split('\n').map(n => n.trim()).filter(n => n);
+        if (names.length !== 32) {
+            alert('Please enter exactly 32 team names, one per line.');
+            return;
+        }
+        // Fill left side (round-1)
+        document.querySelectorAll('.round-1 .team').forEach((el, i) => {
+            el.textContent = names[i];
+            this.updateTextSize(el);
+        });
+        // Fill right side (round-9)
+        document.querySelectorAll('.round-9 .team').forEach((el, i) => {
+            el.textContent = names[i+16];
+            this.updateTextSize(el);
+        });
+        this.hideBatchNamesModal();
+        this.broadcastState();
     }
 }
 

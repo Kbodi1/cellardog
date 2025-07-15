@@ -37,7 +37,7 @@
     <!-- New collaboration header -->
     <div class="collaboration-header">
         <div class="logo-container">
-            <img src="CDPHL+Logo.png" alt="CDPHL Logo">
+            <div class="cellardog-header-text">Cellar Dog</div>
         </div>
         <h1 class="tournament-title">Billiards Tournament</h1>
     </div>
@@ -222,6 +222,7 @@
         <button id="resetBtn">Reset Bracket</button>
         <button id="undoBtn">Undo Last Action</button>
         <button id="editNameBtn">Edit Team Name</button>
+        <button id="batchNamesBtn">Batch Enter Team Names</button>
         <button id="closeMenuBtn">Close Menu</button>
     </div>
 
@@ -244,5 +245,19 @@
         setInterval(updateRetroTime, 1000);
         updateRetroTime(); // Initial update
     </script>
+    <!-- Cellardog watermark overlay -->
+    <div class="cellardog-watermark"></div>
+
+    <!-- Batch Enter Modal -->
+    <div id="batchNamesModal" class="batch-names-modal" style="display:none;">
+        <div class="batch-names-modal-content">
+            <h2>Batch Enter Team Names</h2>
+            <textarea id="batchNamesTextarea" rows="16" placeholder="Enter 32 team names, one per line..."></textarea>
+            <div class="batch-names-modal-actions">
+                <button id="batchNamesSubmit">Submit</button>
+                <button id="batchNamesCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 
