@@ -9,6 +9,9 @@ class BracketManager {
         this.setupEventListeners();
         this.setupFullscreenButton();
         this.initializeTextSizing();
+        
+        // Load saved state when controller page loads
+        this.loadSavedState();
     }
 
     setupFirebase() {
@@ -82,6 +85,31 @@ class BracketManager {
         }
     }
 
+    loadSavedState() {
+        if (!this.isController) return;
+
+        // Wait a moment for Firebase to be ready, then load state
+        setTimeout(() => {
+            this.bracketRef.once('value')
+                .then(snapshot => {
+                    const savedState = snapshot.val();
+                    if (savedState && !savedState._status) {
+                        console.log('Loading saved state from Firebase:', savedState);
+                        this.applyState(savedState);
+                        
+                        // Also restore the history for undo functionality
+                        this.history = [];
+                        this.saveState(); // Save current state as first history entry
+                    } else {
+                        console.log('No saved state found in Firebase.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading saved state from Firebase:', error);
+                });
+        }, 1000); // Wait 1 second for Firebase to be fully initialized
+    }
+
     initializeTextSizing() {
         // Initial text sizing for all teams
         document.querySelectorAll('.team').forEach(team => {
@@ -147,9 +175,18 @@ class BracketManager {
         document.addEventListener('fullscreenchange', () => {
             const bracketContainer = document.querySelector('.bracket-container');
             if (document.fullscreenElement) {
+                // Entering fullscreen - ensure proper scaling
                 bracketContainer.style.transform = 'scale(1)';
+                bracketContainer.style.transition = 'all 0.3s ease';
             } else {
+                // Exiting fullscreen - reset to normal state
                 bracketContainer.style.transform = '';
+                bracketContainer.style.transition = 'all 0.3s ease';
+                
+                // Force a reflow to ensure proper reset
+                setTimeout(() => {
+                    bracketContainer.style.transform = '';
+                }, 50);
             }
         });
     }
@@ -178,8 +215,16 @@ class BracketManager {
             }
         });
 
-        if (state.champion) {
+        // Handle champion display - only show if there's actually a champion
+        if (state.champion && state.champion.trim() !== '') {
             this.displayChampion(state.champion);
+        } else {
+            // Hide champion display if no champion or empty champion
+            const championSlot = document.querySelector('.champion-slot');
+            const champion = document.querySelector('.champion');
+            championSlot.classList.remove('visible');
+            champion.classList.remove('visible');
+            champion.textContent = '';
         }
     }
 
@@ -209,8 +254,10 @@ class BracketManager {
             };
         });
 
+        // Save champion state if exists and is visible
         const champion = document.querySelector('.champion');
-        if (champion && champion.textContent) {
+        const championSlot = document.querySelector('.champion-slot');
+        if (champion && champion.textContent && championSlot.classList.contains('visible')) {
             state.champion = champion.textContent;
         }
 
@@ -521,12 +568,20 @@ class BracketManager {
         const championSlot = document.querySelector('.champion-slot');
         const champion = document.querySelector('.champion');
         
-        championSlot.classList.add('visible');
-        champion.textContent = championName;
-        
-        setTimeout(() => {
-            champion.classList.add('visible');
-        }, 100);
+        // Only show champion if there's actually a name
+        if (championName && championName.trim() !== '') {
+            championSlot.classList.add('visible');
+            champion.textContent = championName;
+            
+            setTimeout(() => {
+                champion.classList.add('visible');
+            }, 100);
+        } else {
+            // Hide champion display if no name
+            championSlot.classList.remove('visible');
+            champion.classList.remove('visible');
+            champion.textContent = '';
+        }
 
         // Broadcast champion update
         if (this.isController) {
