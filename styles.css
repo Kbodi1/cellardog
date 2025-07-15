@@ -30,13 +30,25 @@ body {
     position: relative;
     color: white;
     overflow-y: auto;
-    /* Add semi-transparent background image */
-    background-image: url('cellardog.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-blend-mode: overlay;
-    background-color: rgba(204, 0, 0, 0.7);
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: url('cellardog.png') center center / cover no-repeat;
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Ensure all main content is above the background image */
+body > * {
+    position: relative;
+    z-index: 1;
 }
 
 /* Hide scrollbar in fullscreen */
@@ -772,4 +784,32 @@ body:before {
 :fullscreen .address {
     bottom: 30px;
     font-size: 1.3rem;
+} 
+
+.cellardog-header-text {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 4.5rem;
+    color: black;
+    text-shadow: 2px 2px 4px rgba(255,255,255,0.7);
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 0.1em;
+} 
+
+.tournament-title {
+    font-size: 1rem;
+    margin-top: -18px;
+} 
+
+.cellardog-watermark {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: url('cellardog.png') center center / cover no-repeat;
+    opacity: 0.33;
+    z-index: 10;
+    pointer-events: none;
 } 
