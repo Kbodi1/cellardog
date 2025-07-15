@@ -2,6 +2,7 @@
 
 class BracketManager {
     constructor() {
+        console.log('BracketManager constructor called');
         this.history = [];
         this.controlMenu = document.getElementById('controlMenu');
         this.isEditingNames = false;
@@ -255,6 +256,8 @@ class BracketManager {
     broadcastState() {
         if (!this.isController) return;
 
+        console.log('broadcastState called - saving current state to Firebase');
+
         const state = {};
         document.querySelectorAll('.match').forEach(match => {
             const matchId = match.dataset.matchId;
@@ -288,15 +291,21 @@ class BracketManager {
         // Clean up any undefined or null values
         const cleanState = JSON.parse(JSON.stringify(state));
 
-        console.log('Broadcasting state:', cleanState);
+        console.log('About to save this state to Firebase:', cleanState);
         
         this.bracketRef.set(cleanState)
-            .then(() => console.log('State broadcast successful'))
-            .catch(error => console.error('State broadcast failed:', error));
+            .then(() => {
+                console.log('✅ State successfully saved to Firebase');
+            })
+            .catch(error => {
+                console.error('❌ State save failed:', error);
+            });
     }
 
     handleTeamClick(e) {
         if (!this.isController) return;
+        
+        console.log('handleTeamClick called - winner selected');
         
         const clickedTeam = e.target;
         const match = clickedTeam.closest('.match');
@@ -346,6 +355,7 @@ class BracketManager {
             this.displayChampion(clickedTeam.textContent);
         }
 
+        console.log('About to broadcast state after winner selection');
         // Broadcast the updated state
         this.broadcastState();
     }
