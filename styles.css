@@ -36,7 +36,7 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-blend-mode: overlay;
-    background-color: rgba(204, 0, 0, 0.95);
+    background-color: rgba(204, 0, 0, 0.7);
 }
 
 /* Hide scrollbar in fullscreen */
@@ -74,7 +74,7 @@ body {
 }
 
 .logo-container img {
-    height: 120px;
+    height: 180px;
     width: auto;
     object-fit: contain;
     vertical-align: middle;
