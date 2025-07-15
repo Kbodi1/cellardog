@@ -30,6 +30,13 @@ body {
     position: relative;
     color: white;
     overflow-y: auto;
+    /* Add semi-transparent background image */
+    background-image: url('cellardog.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-blend-mode: overlay;
+    background-color: rgba(204, 0, 0, 0.95);
 }
 
 /* Hide scrollbar in fullscreen */
@@ -68,10 +75,20 @@ body {
 
 .logo-container img {
     height: 120px;
-    width: 160px;
+    width: auto;
     object-fit: contain;
     vertical-align: middle;
     filter: brightness(1.2);
+}
+
+/* Cellar Dog text styling */
+.cellardog-text {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 3rem;
+    color: black;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+    font-weight: bold;
+    letter-spacing: 2px;
 }
 
 .logo-container img:first-child {
@@ -103,11 +120,12 @@ body {
     font-size: 1.8rem;
     transform: scale(0.95, 0.85);
     letter-spacing: -1px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
     text-align: center;
     white-space: nowrap;
     margin-top: -8px;
     line-height: 1.2;
+    color: black;
 }
 
 /* Fullscreen adjustments for header */
@@ -121,8 +139,8 @@ body {
 }
 
 :fullscreen .logo-container img {
-    height: 140px;
-    width: 187px;
+    height: 100px;
+    width: auto;
 }
 
 :fullscreen .logo-container .separator {
@@ -396,19 +414,50 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 20px;
+    transition: margin-top 0.5s ease;
 }
 
 .champion-slot {
     width: 300px;
     height: 60px;
-    margin-top: 20px;
+    margin-top: 10px;
     display: none;
     position: relative;
-    top: -40px;
+    top: -200px;
 }
 
 .champion-slot.visible {
     display: block;
+}
+
+/* Victory logo styling */
+.victory-logo {
+    display: none;
+    text-align: center;
+    margin-bottom: 15px;
+    margin-top: -80px;
+}
+
+.victory-logo img {
+    height: 120px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(1.1);
+}
+
+/* Show victory logo when champion is visible */
+.champion-slot.visible .victory-logo {
+    display: block;
+}
+
+/* Move finals match lower when champion is visible */
+.champion-slot.visible ~ .match.finals {
+    margin-top: 80px;
+}
+
+/* Alternative approach: move the entire round-5 when champion is visible */
+.round-5:has(.champion-slot.visible) {
+    margin-top: 60px;
 }
 
 .champion {
