@@ -21,28 +21,20 @@
 
 body {
     background-color: #cc0000;
+    background-image: url('cellardog.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-blend-mode: overlay;
     min-height: 100vh;
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 10px;
-    position: relative;
     color: white;
     overflow-y: auto;
-}
-
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: url('cellardog.png') center center / cover no-repeat;
-    opacity: 0.5;
-    z-index: 0;
-    pointer-events: none;
 }
 
 /* Ensure all main content is above the background image */
@@ -797,19 +789,3 @@ body:before {
     margin-bottom: 0.1em;
 } 
 
-.tournament-title {
-    font-size: 1rem;
-    margin-top: -18px;
-} 
-
-.cellardog-watermark {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: url('cellardog.png') center center / cover no-repeat;
-    opacity: 0.33;
-    z-index: 10;
-    pointer-events: none;
-} 
